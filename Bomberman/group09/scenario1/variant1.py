@@ -15,10 +15,20 @@ from testcharacter import TestCharacter
 g = Game.fromfile('map.txt')
 
 # TODO Add your character
-g.add_character(TestCharacter("me", # name
-                              "C",  # avatar
-                              0, 0  # position
-))
+bot = TestCharacter("me", # name
+                    "C",  # avatar
+                    0, 0, # position
+                    [0, 0, 0, 0, 200000, -100]
+)
+g.add_character(bot)
 
 # Run!
-g.go()
+#g.go(bot)
+
+# My run
+for i in range(1000):
+    g = Game.fromfile('map.txt')
+    g.add_character(bot)
+    g.go(bot)
+    bot.x = 0
+    bot.y = 0

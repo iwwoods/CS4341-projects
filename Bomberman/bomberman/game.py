@@ -91,7 +91,7 @@ class Game:
                     self.screen.blit(self.bomb_sprite, rect)
         pygame.display.flip()
 
-    def go(self):
+    def go(self, bot):
         colorama.init(autoreset=True)
         self.display_gui()
         self.draw()
@@ -100,7 +100,12 @@ class Game:
             self.step()
             self.display_gui()
             self.draw()
-            input("Press Enter to continue...")
+            # Added for learning
+            extra = 0
+            if self.world.scores["me"] == 0:
+                extra = - 100000
+            bot.updateWeights(self.world, extra)
+            #input("Press Enter to continue...")
         colorama.deinit()
 
     def step(self):
