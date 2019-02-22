@@ -300,10 +300,30 @@ class TestCharacter(CharacterEntity):
 
         self.lr = self.lr*self.decay
 
+
+    ##################
+    # Helper Functions
+    ##################
+
+    # Set state
+    def changeState(self, on):
+        self.on = on           # Weights turned on (ex. if 0 in 6th spot 6th feature turned off)
+        self.weight1 = on[0]   # Weight 1 (exit dist)
+        self.weight2 = on[1]   # Weight 2 (bomb dist)
+        self.weight3 = on[2]   # Weight 3 (nearby walls)
+        self.weight4 = on[3]   # Weight 4 (side wall dist)
+        self.weight5 = on[4]   # Weight 5 (num bombs)
+        self.weight6 = on[5]   # Weight 6 (a*)
+        self.weight7 = on[6]   # Weight 7 (enemy dist)
+
+    # Calculates Manhattan Distance
     def calcMDist(self, x1, y1, x2, y2):
         xDist = abs(x1-x2)
         yDist = abs(y1-y2)
         return xDist + yDist
+    def manhattan_distance(self, node1, node2):
+        dist = abs(node1[0] - node2[0]) + abs(node1[1] - node2[1])
+        return dist
 
     # Convert 0 to 1 num to -1 to +1 num
     def renorm(self, num):
@@ -312,6 +332,7 @@ class TestCharacter(CharacterEntity):
         # Find path from current location to a goal location
         # Locations are pairs: (x, y)
 
+    # Return shortest path
     def aStar(self, wrld, goal, sx, sy):
         if (goal[0] == sx and goal[1] == sy):
             return []
@@ -351,6 +372,7 @@ class TestCharacter(CharacterEntity):
 
         return path
 
+    # Return all non-wall Neighbors
     def neighbors(self, wrld, node):
         neighbors = []
 
@@ -369,6 +391,7 @@ class TestCharacter(CharacterEntity):
 
         return neighbors
 
+    # Return # of bordering walls
     def surroundingWallCount(self, wrld, node):
         neighboringWalls = 0
 
@@ -387,6 +410,4 @@ class TestCharacter(CharacterEntity):
 
         return neighboringWalls
 
-    def manhattan_distance(self, node1, node2):
-        dist = abs(node1[0] - node2[0]) + abs(node1[1] - node2[1])
-        return dist
+
