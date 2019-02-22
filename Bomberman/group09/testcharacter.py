@@ -5,10 +5,11 @@ sys.path.insert(0, '../bomberman')
 from entity import CharacterEntity
 from colorama import Fore, Back
 import random
+import math
 from queue import PriorityQueue
 
 class TestCharacter(CharacterEntity):
-    def __init__(self, name, avatar, x, y, on):
+    def __init__(self, name, avatar, x, y, on, decay, lr):
         CharacterEntity.__init__(self, name, avatar, x, y)
         self.on = on       # Weights turned on (if 0 in 6th spot 6th feature turned off
         self.weight1 = on[0]   # Weight 1 (exit dist)
@@ -17,14 +18,19 @@ class TestCharacter(CharacterEntity):
         self.weight4 = on[3]   # Weight 4 (side wall dist)
         self.weight5 = on[4]   # Weight 5 (num bombs)
         self.weight6 = on[5]   # Weight 6 (a*)
-        self.feature1 = 0     # Manhattan distance to door
-        self.feature2 = 0     # Manhattan distance to bomb in col/row
-        self.feature3 = 0     # number of neighboring walls
-        self.feature4 = 0     # distance from closest side wall
-        self.feature5 = 0     # number bombs on the field
-        self.feature6 = 0     # A*
-        self.gamma = 1        # Reward Decay
-        self.lr = 0.01         # Learning Rate
+        self.weight7 = on[6]   # Weight 7 (enemy dist)
+        self.feature1 = 0.0     # Manhattan distance to door
+        self.feature2 = 0.0     # Manhattan distance to bomb in col/row
+        self.feature3 = 0.0     # number of neighboring walls
+        self.feature4 = 0.0     # distance from closest side wall
+        self.feature5 = 0.0     # number bombs on the field
+        self.feature6 = 0.0     # A*
+        self.feature7 = 0.0     # Closest enemy
+        self.gamma = 0.9          # Reward Decay
+        self.lr = lr          # Learning Rate
+        self.decay = decay      # Decay
+        self.wins = 0
+        self.losses = 0
 
 
     def do(self, wrld):
@@ -93,7 +99,7 @@ class TestCharacter(CharacterEntity):
     def calcVMoves(self, wrld):
         validMoves = []
         validMoves.append(0)  # Pass is valid
-        if (self.is_bomb_at(wrld,self.x,self.y) == None):
+        if (wrld.bomb_time == 10):
             validMoves.append(1)  # Place bomb is valid
         if(self.valid_move(wrld, self.x, self.y + 1)):
             validMoves.append(2)  # Move down is valid
@@ -142,7 +148,11 @@ class TestCharacter(CharacterEntity):
         elif action == 2 or action == 3 or action == 9:
             sy += 1
 
-        # a*
+        # Enemy dist
+        if (self.on[6] != 0):
+            self.calcFeature7(wrld, action, sx, sy)
+
+        # A*
         if(self.on[5] != 0):
             self.calcFeature6(wrld, action, sx, sy)
 
@@ -166,7 +176,7 @@ class TestCharacter(CharacterEntity):
         if (self.on[0] != 0):
             self.calcFeature1(wrld, action, sx, sy)
 
-        return self.weight1 * self.feature1 + self.weight2 * self.feature2 + self.weight3 * self.feature3 + self.weight4 * self.feature4 + self.weight5 * self.feature5 + self.weight6 * self.feature6
+        return self.weight1 * self.feature1 + self.weight2 * self.feature2 + self.weight3 * self.feature3 + self.weight4 * self.feature4 + self.weight5 * self.feature5 + self.weight6 * self.feature6 + self.weight7 * self.feature7
 
     #####################
     # Feature Calculation
@@ -193,9 +203,9 @@ class TestCharacter(CharacterEntity):
             feature2 = 0/largestDim
         for k in wrld.bombs:
             if wrld.bombs[k].x == sx:
-                feature2 = min(feature2, abs(wrld.bombs[k].y - sy)/largestDim)
+                feature2 = min(feature2, abs(wrld.bombs[k].y - sy)+wrld.bomb_time/largestDim+9)
             if wrld.bombs[k].y == sy:
-                feature2 = min(feature2, abs(wrld.bombs[k].x - sx)/largestDim)
+                feature2 = min(feature2, abs(wrld.bombs[k].x - sx)+wrld.bomb_time/largestDim+9)
         feature2 = self.renorm(feature2)
 
         self.feature2 = feature2
@@ -220,18 +230,31 @@ class TestCharacter(CharacterEntity):
     def calcFeature5(self, wrld, action, sx, sy):
         value = 1
         for b in wrld.bombs:
-            value = value/2
+            value = 0
+        if action == 1:
+            value = 0
         value = self.renorm(value)
-        self.feature5 = value
+        self.feature5 = -value
 
     # Calculate feature 6 value for state and action
     def calcFeature6(self, wrld, action, sx, sy):
         largestDim = max(wrld.height(), wrld.width())
-        self.feature6 = self.renorm(len(self.aStar(wrld, wrld.exitcell, sx, sy))/ largestDim*4)
+        asta = self.aStar(wrld, wrld.exitcell, sx, sy)
+        lasta = len(asta)
+        self.feature6 = -self.renorm(math.sqrt(lasta)/math.sqrt(largestDim*4))
+
+    # Calculate feature 7 value for state and action
+    def calcFeature7(self, wrld, action, sx, sy):
+        largestDim = max(wrld.height(), wrld.width())
+        closestEnemy = largestDim*2
+        for e in wrld.monsters:
+            # closestEnemy = min(closestEnemy, max(abs(sx - wrld.monsters[e][0].x), abs(sy - wrld.monsters[e][0].y)))
+            closestEnemy = min(closestEnemy, len(self.aStar(wrld, (wrld.monsters[e][0].x, wrld.monsters[e][0].y), sx, sy)))
+        self.feature7 = self.renorm(math.sqrt(closestEnemy)/math.sqrt(largestDim*2))
 
     # Update weights
     def updateWeights(self, wrld, extra):
-        vMoves = self.calcVMoves(wrld);
+        vMoves = self.calcVMoves(wrld)
         r = -1 + extra  # cost of living
         for e in range(len(wrld.events)):
             if wrld.events[e].tpe == 0:
@@ -239,11 +262,14 @@ class TestCharacter(CharacterEntity):
             if wrld.events[e].tpe == 1:
                 r += 1000  # BOMB_HIT_MONSTER
             if wrld.events[e].tpe == 2:
-                r += -10000  # BOMB_HIT_CHARACTER
+                r -= 10000  # BOMB_HIT_CHARACTER
+                self.losses += 1
             if wrld.events[e].tpe == 3:
-                r += -10000  # CHARACTER_KILLED_BY_MONSTER
+                r -= 10000  # CHARACTER_KILLED_BY_MONSTER
+                self.losses += 1
             if wrld.events[e].tpe == 4:
-                r += 100000  # CHARACTER_FOUND_EXIT
+                r += 10000  # CHARACTER_FOUND_EXIT
+                self.wins += 1
             print(wrld.events[e])
         maxMQ = 0;
         for m in range(len(vMoves)):
@@ -251,8 +277,10 @@ class TestCharacter(CharacterEntity):
                 maxMQ = self.calcQ(wrld, vMoves[m])
             else:
                 maxMQ = max(maxMQ, self.calcQ(wrld, vMoves[m]))
+
+        #TODO: Right now positive weights adjust correctly but negative weights always just get more megative
         delta = (r + self.gamma * maxMQ) - self.calcQ(wrld, -1)
-        print("Old Weight: " + str(self.weight1) + ", " + str(self.weight2) + ", " + str(self.weight3) + ", " + str(self.weight4) + ", " + str(self.weight5) + ", " + str(self.weight6))
+        print("Old Weight: " + str(self.weight1) + ", " + str(self.weight2) + ", " + str(self.weight3) + ", " + str(self.weight4) + ", " + str(self.weight5) + ", " + str(self.weight6) + ", " + str(self.weight7))
         if (self.on[0] != 0):
             self.weight1 = self.weight1 + self.lr * delta * self.feature1
         if (self.on[1] != 0):
@@ -265,7 +293,12 @@ class TestCharacter(CharacterEntity):
             self.weight5 = self.weight5 + self.lr * delta * self.feature5
         if (self.on[5] != 0):
             self.weight6 = self.weight6 + self.lr * delta * self.feature6
-        print("New Weights: " + str(self.weight1) + ", " + str(self.weight2) + ", " + str(self.weight3) + ", " + str(self.weight4) + ", " + str(self.weight5) + ", " + str(self.weight6))
+        if (self.on[6] != 0):
+            self.weight7 = self.weight7 + self.lr * delta * self.feature7
+
+        print("New Weights: " + str(self.weight1) + ", " + str(self.weight2) + ", " + str(self.weight3) + ", " + str(self.weight4) + ", " + str(self.weight5) + ", " + str(self.weight6) + ", " + str(self.weight7))
+
+        self.lr = self.lr*self.decay
 
     def calcMDist(self, x1, y1, x2, y2):
         xDist = abs(x1-x2)
