@@ -14,15 +14,17 @@ class AStarCharacter(CharacterEntity):
         # Find the goal
         goal = self.find_goal(wrld)
 
-        if len(self.path) < 1:
+        if self.path == -1 or len(self.path) < 1:
             self.path = self.aStar(wrld, goal)
 
         # Calculate movement dx, dy
-        my_loc = wrld.me(self)
-        next_node = self.path.pop()
-        dx = next_node[0] - my_loc.x
-        dy = next_node[1] - my_loc.y
-        self.move(dx, dy)
+        if self.path != -1:
+            my_loc = wrld.me(self)
+            next_node = self.path.pop()
+            dx = next_node[0] - my_loc.x
+            dy = next_node[1] - my_loc.y
+            self.move(dx, dy)
+
         pass
 
     # Find path from current location to a goal location
