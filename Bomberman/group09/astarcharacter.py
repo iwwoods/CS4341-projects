@@ -27,10 +27,22 @@ class AStarCharacter(CharacterEntity):
 
     # Find path from current location to a goal location
     # Locations are pairs: (x, y)
+    # Return a list of nodes to traverse to reach goal (including the goal)
+    # or -1 indicating that the goal cannot be reached
     def aStar(self, wrld, goal):
         frontier = PriorityQueue()
         my_loc = wrld.me(self)
         frontier.put((0, my_loc.x, my_loc.y))
+
+        # Check if goal and location are the same
+        if (my_loc.x, my_loc.y) == goal:
+            # Return an empty list (no action / steps are needed)
+            return []
+
+        # Check if goal is in the world
+        if not (0 <= goal[0] < wrld.width() and 0 <= goal[1] < wrld.height()):
+            # Return indicator that goal cannot be reached
+            return -1
 
         # Arrays are transposed to make accessing [x][y]
         cost_so_far = [[-1 for x in range(wrld.height())] for y in range(wrld.width())]
@@ -55,9 +67,14 @@ class AStarCharacter(CharacterEntity):
                     frontier.put((priority, next_node[0], next_node[1]))
                     came_from[next_node[0]][next_node[1]] = current
 
+        prev_node = came_from[goal[0]][goal[1]]
+        # Check if goal is not reachable
+        if prev_node == (-1, -1):
+            # Return indicator that goal is not reachable
+            return -1
+
         # Construct path from came_from
         path = [(goal[0], goal[1])]
-        prev_node = came_from[goal[0]][goal[1]]
         while prev_node != (my_loc.x, my_loc.y):
             path.append(prev_node)
             prev_node = came_from[prev_node[0]][prev_node[1]]
