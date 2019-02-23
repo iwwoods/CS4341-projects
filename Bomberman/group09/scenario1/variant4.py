@@ -26,7 +26,7 @@ g.add_monster(monster)
 bot = TestCharacter("me", # name
                               "C",  # avatar
                               0, 0,  # position
-                              [0.0, 1.0, 0.0, 0.0, 3.0, 2.0, 1.0],
+                              [0.0, 1.0, 0.0, 0.0, 3.0, 2.0, 1.0, 0.0, 0.0],
                               0.9999,   # Decay
                               0.01  # Learning rate
 )
@@ -37,7 +37,7 @@ g.add_character(bot)
 #g.go()
 
 # My run
-for i in range(100):
+for i in range(500):
     g = Game.fromfile('map.txt')
     g.add_monster(monster)
     monster.x = 3

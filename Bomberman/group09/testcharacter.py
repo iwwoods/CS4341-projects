@@ -8,6 +8,17 @@ import random
 import math
 from queue import PriorityQueue
 
+
+'''
+ To add feature:
+   Add weight and feature variables to init,
+   Add calcFeatureN function
+   Add feature calculation and add feature * weight to the result of calcQ
+   Add feature to update weights function
+   Add feature to the print weights helper function
+   Add feature spot to ALL on arrays
+'''
+
 class TestCharacter(CharacterEntity):
     def __init__(self, name, avatar, x, y, on, decay, lr):
         CharacterEntity.__init__(self, name, avatar, x, y)
@@ -19,6 +30,8 @@ class TestCharacter(CharacterEntity):
         self.weight5 = on[4]   # Weight 5 (num bombs)
         self.weight6 = on[5]   # Weight 6 (a*)
         self.weight7 = on[6]   # Weight 7 (enemy dist)
+        self.weight8 = on[7]   # Weight 8 (enemy in range 5 dist)
+        self.weight9 = on[8]   # Weight 9 (corner detection)
         self.feature1 = 0.0     # Manhattan distance to door
         self.feature2 = 0.0     # Manhattan distance to bomb in col/row
         self.feature3 = 0.0     # number of neighboring walls
@@ -26,13 +39,16 @@ class TestCharacter(CharacterEntity):
         self.feature5 = 0.0     # number bombs on the field
         self.feature6 = 0.0     # A*
         self.feature7 = 0.0     # Closest enemy
-        self.gamma = 0.9          # Reward Decay
-        self.lr = lr          # Learning Rate
+        self.feature8 = 0.0     # Closest enemy in range of 5
+        self.feature9 = 0.0     # Corner detection
+        self.gamma = 0.9        # Reward Decay
+        self.lr = lr            # Learning Rate
         self.decay = decay      # Decay
-        self.wins = 0
-        self.losses = 0
+        self.wins = 0           # Number of wins so far
+        self.losses = 0         # Number of losses so far
+        self.alt7 = False       # True if enemies are moving only in straight lines
 
-
+    # Execute action for this turn
     def do(self, wrld):
         # Your code here
         validMoves = self.calcVMoves(wrld)  # Find all valid moves
@@ -47,7 +63,7 @@ class TestCharacter(CharacterEntity):
 
         # Learning
         qMove = -1
-        if(True):  #random.randint(0, 5) != 0):  # Add some randomness
+        if(self.lr == 0.0 or random.randint(0, 5) != 0):  # Add some randomness
             maxQ = None
             for m in range(len(validMoves)):
                 moveQVal = self.calcQ(wrld, validMoves[m])
@@ -69,114 +85,107 @@ class TestCharacter(CharacterEntity):
             print("Invalid Move")
             pass
 
-
-    # Execute move dictated by action
-    def makeMove(self, action):
-        if (action == 0):
-            pass
-        elif (action == 1):
-            self.place_bomb()
-        elif (action == 2):
-            self.move(0,1)
-        elif (action == 3):
-            self.move(1,1)
-        elif (action == 4):
-            self.move(1,0)
-        elif (action == 5):
-            self.move(1,-1)
-        elif (action == 6):
-            self.move(0,-1)
-        elif (action == 7):
-            self.move(-1,-1)
-        elif (action == 8):
-            self.move(-1,0)
-        elif (action == 9):
-            self.move(-1,1)
-        else:
-            pass
-
-    # Calculate valid moves
-    def calcVMoves(self, wrld):
-        validMoves = []
-        validMoves.append(0)  # Pass is valid
-        if (wrld.bomb_time == 10):
-            validMoves.append(1)  # Place bomb is valid
-        if(self.valid_move(wrld, self.x, self.y + 1)):
-            validMoves.append(2)  # Move down is valid
-        if(self.valid_move(wrld, self.x + 1, self.y + 1)):
-            validMoves.append(3)  # Move down & right is valid
-        if(self.valid_move(wrld, self.x + 1, self.y)):
-            validMoves.append(4)  # Move right is valid
-        if(self.valid_move(wrld, self.x + 1, self.y - 1)):
-            validMoves.append(5)  # Move up & right is valid
-        if(self.valid_move(wrld, self.x, self.y - 1)):
-            validMoves.append(6)  # Move up is valid
-        if(self.valid_move(wrld, self.x - 1, self.y - 1)):
-            validMoves.append(7)  # Move up & left is valid
-        if(self.valid_move(wrld, self.x - 1, self.y)):
-            validMoves.append(8)  # Move left is valid
-        if(self.valid_move(wrld, self.x - 1, self.y + 1)):
-            validMoves.append(9)  # Move down & left is valid
-
-        return validMoves
-
-    # Determine if self can move to world position x,y
-    def valid_move(self, wrld, x, y):
-        return x >= 0 and x < wrld.width() and y >= 0 and y < wrld.height() and not wrld.wall_at(x,y)
-
-    # Returns true if there's a bomb at given position
-    def is_bomb_at(self, wrld, x, y):
-        for b in wrld.bombs:
-            if wrld.bombs[b].x == x and wrld.bombs[b].y == y:
-                return True
-
     # Calculate Q value for state and action
+    # action = -1 means no action, eval current state
     def calcQ(self, wrld, action):
         sx = self.x
         sy = self.y
-        if action == 0 or action == 1 or action == 2 or action == 6:
-            sx += 0
-        elif action == 3 or action == 4 or action == 5:
-            sx += 1
-        elif action == 7 or action == 8 or action == 9:
-            sx -= 1
 
-        if action == 0 or action == 1 or action == 4 or action == 8:
-            sy += 0
-        elif action == 5 or action == 6 or action == 7:
-            sy -= 1
-        elif action == 2 or action == 3 or action == 9:
-            sy += 1
+        is_global = False
+        if action == -1:
+            is_global = True
+        else:   # Only do if action taken/ time passed
+            if action == 0 or action == 1 or action == 2 or action == 6:
+                sx += 0
+            elif action == 3 or action == 4 or action == 5:
+                sx += 1
+            elif action == 7 or action == 8 or action == 9:
+                sx -= 1
+
+            if action == 0 or action == 1 or action == 4 or action == 8:
+                sy += 0
+            elif action == 5 or action == 6 or action == 7:
+                sy -= 1
+            elif action == 2 or action == 3 or action == 9:
+                sy += 1
 
         # Enemy dist
+        feature9 = 0.0
+        if (self.on[8] != 0):
+            if is_global:
+                self.feature9 = self.calcFeature9(wrld, action, sx, sy)
+            else:
+                feature9 = self.calcFeature9(wrld, action, sx, sy)
+
+        # Enemy dist
+        feature8 = 0.0
+        if (self.on[7] != 0):
+            if is_global:
+                self.feature8 = self.calcFeature8(wrld, action, sx, sy, False)
+            else:
+                feature8 = self.calcFeature8(wrld, action, sx, sy, True)
+
+        # Enemy dist
+        feature7 = 0.0
         if (self.on[6] != 0):
-            self.calcFeature7(wrld, action, sx, sy)
+            if is_global:
+                self.feature7 = self.calcFeature7(wrld, action, sx, sy, False, self.alt7)
+            else:
+                feature7 = self.calcFeature7(wrld, action, sx, sy, True, self.alt7)
 
         # A*
+        feature6 = 0.0
         if(self.on[5] != 0):
-            self.calcFeature6(wrld, action, sx, sy)
+            if is_global:
+                self.feature6 = self.calcFeature6(wrld, action, sx, sy)
+            else:
+                feature6 = self.calcFeature6(wrld, action, sx, sy)
 
         # Bombs on the field
+        feature5 = 0.0
         if (self.on[4] != 0):
-            self.calcFeature5(wrld, action, sx, sy)
+            if is_global:
+                self.feature5 = self.calcFeature5(wrld, action, sx, sy)
+            else:
+                feature5 = self.calcFeature5(wrld, action, sx, sy)
 
         # Dist from side walls
+        feature4 = 0.0
         if (self.on[3] != 0):
-            self.calcFeature4(wrld, action, sx, sy)
+            if is_global:
+                self.feature4 = self.calcFeature4(wrld, action, sx, sy)
+            else:
+                feature4 = self.calcFeature4(wrld, action, sx, sy)
 
         # neighboring walls
+        feature3 = 0.0
         if (self.on[2] != 0):
-            self.calcFeature3(wrld, action, sx, sy)
+            if is_global:
+                self.feature3 = self.calcFeature3(wrld, action, sx, sy)
+            else:
+                feature3 = self.calcFeature3(wrld, action, sx, sy)
 
         # bomb dist on lines calc
+        feature2 = 0.0
         if (self.on[1] != 0):
-            self.calcFeature2(wrld, action, sx, sy)
+            if is_global:
+                self.feature2 = self.calcFeature2(wrld, action, sx, sy)
+            else:
+                feature2 = self.calcFeature2(wrld, action, sx, sy)
 
         # Manhattan dist calc
+        feature1 = 0.0
         if (self.on[0] != 0):
-            self.calcFeature1(wrld, action, sx, sy)
+            if is_global:
+                self.feature1 = self.calcFeature1(wrld, action, sx, sy)
+            else:
+                feature1 = self.calcFeature1(wrld, action, sx, sy)
 
-        return self.weight1 * self.feature1 + self.weight2 * self.feature2 + self.weight3 * self.feature3 + self.weight4 * self.feature4 + self.weight5 * self.feature5 + self.weight6 * self.feature6 + self.weight7 * self.feature7
+        if (is_global):
+            return self.weight1 * self.feature1 + self.weight2 * self.feature2 + self.weight3 * self.feature3 + self.weight4 * self.feature4 + self.weight5 * self.feature5 + self.weight6 * self.feature6 + self.weight7 * self.feature7 + self.weight8 * self.feature8 + self.weight9 * self.feature9
+        else:
+            return self.weight1 * feature1 + self.weight2 * feature2 + self.weight3 * feature3 + self.weight4 * feature4 + self.weight5 * feature5 + self.weight6 * feature6 + self.weight7 * feature7 + self.weight8 * feature8 + self.weight9 * feature9
+
 
     #####################
     # Feature Calculation
@@ -192,7 +201,7 @@ class TestCharacter(CharacterEntity):
         feature1 = distToExit/(wrld.width() + wrld.height())
         feature1 = self.renorm(feature1)
 
-        self.feature1 = feature1
+        return feature1
 
     # Calculate feature 2 value for state and action
     def calcFeature2(self, wrld, action, sx, sy):
@@ -208,12 +217,12 @@ class TestCharacter(CharacterEntity):
                 feature2 = min(feature2, abs(wrld.bombs[k].x - sx)+wrld.bomb_time/largestDim+9)
         feature2 = self.renorm(feature2)
 
-        self.feature2 = feature2
+        return feature2
 
     # Calculate feature 3 value for state and action
     def calcFeature3(self, wrld, action, sx, sy):
         feature3 = self.renorm(self.surroundingWallCount(wrld, (sx, sy))/8)
-        self.feature3 = feature3
+        return feature3
 
     # Calculate feature 4 value for state and action
     def calcFeature4(self, wrld, action, sx, sy):
@@ -224,7 +233,7 @@ class TestCharacter(CharacterEntity):
         while i < minDist:
             feature4 = feature4/2
             i += 1
-        self.feature4 = self.renorm(feature4)
+        return self.renorm(feature4)
 
     # Calculate feature 5 value for state and action
     def calcFeature5(self, wrld, action, sx, sy):
@@ -234,25 +243,77 @@ class TestCharacter(CharacterEntity):
         if action == 1:
             value = 0
         value = self.renorm(value)
-        self.feature5 = -value
+        return -value
 
     # Calculate feature 6 value for state and action
     def calcFeature6(self, wrld, action, sx, sy):
         largestDim = max(wrld.height(), wrld.width())
         asta = self.aStar(wrld, wrld.exitcell, sx, sy)
         lasta = len(asta)
-        self.feature6 = -self.renorm(math.sqrt(lasta)/math.sqrt(largestDim*4))
+        return -self.renorm(math.sqrt(lasta)/math.sqrt(largestDim*4))
 
     # Calculate feature 7 value for state and action
-    def calcFeature7(self, wrld, action, sx, sy):
+    def calcFeature7(self, wrld, action, sx, sy, enemy_moves, dir=False):
         largestDim = max(wrld.height(), wrld.width())
         closestEnemy = largestDim*2
         for e in wrld.monsters:
-            # closestEnemy = min(closestEnemy, max(abs(sx - wrld.monsters[e][0].x), abs(sy - wrld.monsters[e][0].y)))
-            closestEnemy = min(closestEnemy, len(self.aStar(wrld, (wrld.monsters[e][0].x, wrld.monsters[e][0].y), sx, sy)))
-        self.feature7 = self.renorm(math.sqrt(closestEnemy)/math.sqrt(largestDim*2))
+            if dir == False:
+                closestEnemy = min(closestEnemy, len(self.aStar(wrld, (wrld.monsters[e][0].x, wrld.monsters[e][0].y), sx, sy)))
+            else:
+                nx = wrld.monsters[e][0].x + wrld.monsters[e][0].dx
+                ny = wrld.monsters[e][0].y + wrld.monsters[e][0].dy
+                if nx >= 0 and nx < wrld.width() and ny >= 0 and ny < wrld.height() and not wrld.wall_at(nx, ny):
+                    asta = self.aStar(wrld, (nx, ny), sx, sy)
+                    if asta != -1:
+                        closestEnemy = min(closestEnemy, len(asta))
+                else:
+                    asta = self.aStar(wrld, (wrld.monsters[e][0].x, wrld.monsters[e][0].y), sx, sy)
+                    if asta != -1:
+                        closestEnemy = min(closestEnemy, len(asta))
 
+        # Account for worst case if enemy moves
+        if enemy_moves and closestEnemy > 0 and dir == False:
+            closestEnemy -= 1
+
+        return self.renorm(math.sqrt(closestEnemy)/math.sqrt(largestDim*2))
+
+    # Calculate feature 8 value for state and action
+    def calcFeature8(self, wrld, action, sx, sy, enemy_moves):
+        largestDim = max(wrld.height(), wrld.width())
+        considerationRange = 3
+        closestEnemy = considerationRange
+        if enemy_moves:
+            closestEnemy += 1
+        for e in wrld.monsters:
+            asta = self.aStar(wrld, (wrld.monsters[e][0].x, wrld.monsters[e][0].y), sx, sy)
+            if asta != -1:
+                closestEnemy = min(closestEnemy, len(asta))
+
+        # Account for worst case if enemy moves
+        if enemy_moves and closestEnemy > 0:
+            closestEnemy -= 1
+
+        return (closestEnemy)/considerationRange
+
+    # Calculate feature 9 value for state and action
+    def calcFeature9(self, wrld, action, sx, sy):
+        minCorner = 4
+        minx = minCorner
+        miny = minCorner
+        for dx in range(minCorner):
+            if not self.valid_move(wrld, sx+dx, sy) or not self.valid_move(wrld, sx+dx, sy):
+                minx = min(minx, dx)
+        for dy in range(minCorner):
+            if not self.valid_move(wrld, sx, sy+dy) or not self.valid_move(wrld, sx, sy+dy):
+                miny = min(miny, dy)
+        return math.sqrt(minx*miny)/minCorner
+
+
+    ################
     # Update weights
+    ################
+
+    # Updates the weights
     def updateWeights(self, wrld, extra):
         vMoves = self.calcVMoves(wrld)
         r = -1 + extra  # cost of living
@@ -278,25 +339,32 @@ class TestCharacter(CharacterEntity):
             else:
                 maxMQ = max(maxMQ, self.calcQ(wrld, vMoves[m]))
 
-        #TODO: Right now positive weights adjust correctly but negative weights always just get more megative
-        delta = (r + self.gamma * maxMQ) - self.calcQ(wrld, -1)
-        print("Old Weight: " + str(self.weight1) + ", " + str(self.weight2) + ", " + str(self.weight3) + ", " + str(self.weight4) + ", " + str(self.weight5) + ", " + str(self.weight6) + ", " + str(self.weight7))
-        if (self.on[0] != 0):
-            self.weight1 = self.weight1 + self.lr * delta * self.feature1
-        if (self.on[1] != 0):
-            self.weight2 = self.weight2 + self.lr * delta * self.feature2
-        if (self.on[2] != 0):
-            self.weight3 = self.weight3 + self.lr * delta * self.feature3
-        if (self.on[3] != 0):
-            self.weight4 = self.weight4 + self.lr * delta * self.feature4
-        if (self.on[4] != 0):
-            self.weight5 = self.weight5 + self.lr * delta * self.feature5
-        if (self.on[5] != 0):
-            self.weight6 = self.weight6 + self.lr * delta * self.feature6
-        if (self.on[6] != 0):
-            self.weight7 = self.weight7 + self.lr * delta * self.feature7
+        print(r)
 
-        print("New Weights: " + str(self.weight1) + ", " + str(self.weight2) + ", " + str(self.weight3) + ", " + str(self.weight4) + ", " + str(self.weight5) + ", " + str(self.weight6) + ", " + str(self.weight7))
+        #TODO: Right now positive weights adjust correctly but negative weights always just get more megative (Possibly fixed?)
+        delta = (r + self.gamma * maxMQ) - self.calcQ(wrld, -1)
+        self.printWeights()
+
+        if (self.on[0] != 0):
+            self.weight1 = self.weight1 + self.lr * delta * self.feature1 * (self.weight1/abs(self.weight1))
+        if (self.on[1] != 0):
+            self.weight2 = self.weight2 + self.lr * delta * self.feature2 * (self.weight2/abs(self.weight2))
+        if (self.on[2] != 0):
+            self.weight3 = self.weight3 + self.lr * delta * self.feature3 * (self.weight3/abs(self.weight3))
+        if (self.on[3] != 0):
+            self.weight4 = self.weight4 + self.lr * delta * self.feature4 * (self.weight4/abs(self.weight4))
+        if (self.on[4] != 0):
+            self.weight5 = self.weight5 + self.lr * delta * self.feature5 * (self.weight5/abs(self.weight5))
+        if (self.on[5] != 0):
+            self.weight6 = self.weight6 + self.lr * delta * self.feature6 * (self.weight6/abs(self.weight6))
+        if (self.on[6] != 0):
+            self.weight7 = self.weight7 + self.lr * delta * self.feature7 * (self.weight7/abs(self.weight7))
+        if (self.on[7] != 0):
+            self.weight8 = self.weight8 + self.lr * delta * self.feature8 * (self.weight8/abs(self.weight8))
+        if (self.on[8] != 0):
+            self.weight9 = self.weight9 + self.lr * delta * self.feature9 * (self.weight9/abs(self.weight9))
+
+        self.printWeights()
 
         self.lr = self.lr*self.decay
 
@@ -332,13 +400,23 @@ class TestCharacter(CharacterEntity):
         # Find path from current location to a goal location
         # Locations are pairs: (x, y)
 
-    # Return shortest path
+    # Find path from current location to a goal location
+    # Locations are pairs: (x, y)
+    # Return a list of nodes to traverse to reach goal (including the goal)
+    # or -1 indicating that the goal cannot be reached
     def aStar(self, wrld, goal, sx, sy):
-        if (goal[0] == sx and goal[1] == sy):
-            return []
-
         frontier = PriorityQueue()
         frontier.put((0, sx, sy))
+
+        # Check if goal and location are the same
+        if (sx, sy) == goal:
+            # Return an empty list (no action / steps are needed)
+            return []
+
+        # Check if goal is in the world
+        if not (0 <= goal[0] < wrld.width() and 0 <= goal[1] < wrld.height()):
+            # Return indicator that goal cannot be reached
+            return -1
 
         # Arrays are transposed to make accessing [x][y]
         cost_so_far = [[-1 for x in range(wrld.height())] for y in range(wrld.width())]
@@ -363,9 +441,14 @@ class TestCharacter(CharacterEntity):
                     frontier.put((priority, next_node[0], next_node[1]))
                     came_from[next_node[0]][next_node[1]] = current
 
+        prev_node = came_from[goal[0]][goal[1]]
+        # Check if goal is not reachable
+        if prev_node == (-1, -1):
+            # Return indicator that goal is not reachable
+            return -1
+
         # Construct path from came_from
         path = [(goal[0], goal[1])]
-        prev_node = came_from[goal[0]][goal[1]]
         while prev_node != (sx, sy):
             path.append(prev_node)
             prev_node = came_from[prev_node[0]][prev_node[1]]
@@ -409,5 +492,72 @@ class TestCharacter(CharacterEntity):
                                 neighboringWalls += 1
 
         return neighboringWalls
+
+    # Determine if self can move to world position x,y
+    def valid_move(self, wrld, x, y):
+        return x >= 0 and x < wrld.width() and y >= 0 and y < wrld.height() and not wrld.wall_at(x,y)
+
+    # Returns true if there's a bomb at given position
+    def is_bomb_at(self, wrld, x, y):
+        for b in wrld.bombs:
+            if wrld.bombs[b].x == x and wrld.bombs[b].y == y:
+                return True
+
+    # Execute move dictated by action
+    def makeMove(self, action):
+        if (action == 0):
+            pass
+        elif (action == 1):
+            self.place_bomb()
+        elif (action == 2):
+            self.move(0, 1)
+        elif (action == 3):
+            self.move(1, 1)
+        elif (action == 4):
+            self.move(1, 0)
+        elif (action == 5):
+            self.move(1, -1)
+        elif (action == 6):
+            self.move(0, -1)
+        elif (action == 7):
+            self.move(-1, -1)
+        elif (action == 8):
+            self.move(-1, 0)
+        elif (action == 9):
+            self.move(-1, 1)
+        else:
+            pass
+
+    # Calculate valid moves
+    def calcVMoves(self, wrld):
+        validMoves = []
+        validMoves.append(0)  # Pass is valid
+        if (wrld.bomb_time == 10):
+            validMoves.append(1)  # Place bomb is valid
+        if (self.valid_move(wrld, self.x, self.y + 1)):
+            validMoves.append(2)  # Move down is valid
+        if (self.valid_move(wrld, self.x + 1, self.y + 1)):
+            validMoves.append(3)  # Move down & right is valid
+        if (self.valid_move(wrld, self.x + 1, self.y)):
+            validMoves.append(4)  # Move right is valid
+        if (self.valid_move(wrld, self.x + 1, self.y - 1)):
+            validMoves.append(5)  # Move up & right is valid
+        if (self.valid_move(wrld, self.x, self.y - 1)):
+            validMoves.append(6)  # Move up is valid
+        if (self.valid_move(wrld, self.x - 1, self.y - 1)):
+            validMoves.append(7)  # Move up & left is valid
+        if (self.valid_move(wrld, self.x - 1, self.y)):
+            validMoves.append(8)  # Move left is valid
+        if (self.valid_move(wrld, self.x - 1, self.y + 1)):
+            validMoves.append(9)  # Move down & left is valid
+
+        return validMoves
+
+    # Prints out the weights
+    def printWeights(self):
+        print("New Weights: [" + str(self.weight1) + ", " + str(self.weight2) + ", " + str(self.weight3) + ", " +
+            str(self.weight4) + ", " + str(self.weight5) + ", " + str(self.weight6) + ", " + str(self.weight7) + ", " +
+            str(self.weight8) + ", " + str(self.weight9) + "]")
+
 
 
