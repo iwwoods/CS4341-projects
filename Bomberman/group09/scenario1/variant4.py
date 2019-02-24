@@ -26,9 +26,9 @@ g.add_monster(monster)
 bot = TestCharacter("me", # name
                               "C",  # avatar
                               0, 0,  # position
-                              [0.0, 1.0, 0.0, 0.0, 3.0, 2.0, 1.0, 0.0, 0.0],
+                              [0.0, 1.0, 0.0, 0.0, 1.0, -30.0, 0.0, 20.0, -5.0],
                               0.9999,   # Decay
-                              0.01  # Learning rate
+                              0.001  # Learning rate
 )
 # TODO Add your character
 g.add_character(bot)
@@ -37,13 +37,14 @@ g.add_character(bot)
 #g.go()
 
 # My run
-for i in range(500):
+for i in range(100):
     g = Game.fromfile('map.txt')
-    g.add_monster(monster)
     monster.x = 3
     monster.y = 9
-    g.add_character(bot)
-    g.go(bot)
+    g.add_monster(monster)
     bot.x = 0
     bot.y = 0
+    bot.changeState([0.0, 10.0, 0.0, 0.0, 1.0, -30.0, 0.0, 20.0, -5.0])
+    g.add_character(bot)
+    g.go(bot)
 print("Win ratio: " + str(bot.wins) + ":" + str(bot.wins + bot.losses))

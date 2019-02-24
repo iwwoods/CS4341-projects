@@ -103,7 +103,7 @@ class Game:
             # Added for learning
             extra = 0
             if self.world.scores["me"] == 0:
-                extra = - 100000
+                extra = -100000
             bot.updateWeights(self.world, extra)
             #input("Press Enter to continue...")
         colorama.deinit()
