@@ -45,6 +45,7 @@ for i in range(100):
     g.add_monster(monster)
     bot.x = 0
     bot.y = 0
+    bot.maybe_place_bomb = False
     bot.changeState(bot.oldState1)
     bot.state = 1
     g.add_character(bot)

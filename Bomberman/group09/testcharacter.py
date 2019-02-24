@@ -25,6 +25,8 @@ from queue import PriorityQueue
 # Potential uses for bombs: find goal, destroy walls (most walls, walls that corner you), kill enemy/other players
 #TODO: Add features to dictate bomb placement (ex. postive reward for holding on to a bomb so it only places when the placement is high enough value)
 
+#TODO: Performs an action after end?
+
 #TODO: When enemy lockes on its pretty much impossible to not die, Find a way around this, maybe look at enemy's code and find what causes lock on
 #TODO: Does the bomb trigger when the enemy steps on it? or when we do? maybe add feature valuing holding onto a bomb for the right moment?
 #TODO: Add feature 10, manhattan dist to enemy in range (7?) (DONE)
@@ -85,7 +87,6 @@ class TestCharacter(CharacterEntity):
         #print(hMove)
 
         # Learning
-        # TODO: Determine why he always places a bomb at the beginning even when bomb features are turned off
         qMove = -1
         if(True):  #self.lr == 0.0 or random.randint(0, 5) != 0):  # Add some randomness
             self.printFeatures()
@@ -128,6 +129,7 @@ class TestCharacter(CharacterEntity):
         else:   # Only do if action taken/ time passed
             sim_world = SensedWorld.from_world(wrld)  # Create copy of world to run simulation on
             myself = sim_world.me(self)               # Find my character in the simulated world (this is a copy of first char so technically different)
+            #if myself is None:  #TODO: Find way to handle gameover, myself is None
             self.makeMove(action, myself)             # Execute action
             new_state = sim_world.next()              # Simulate outcome (returns (new_world, events))
             sim_world = new_state[0]
