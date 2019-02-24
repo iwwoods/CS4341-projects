@@ -122,93 +122,15 @@ class TestCharacter(CharacterEntity):
 
         featureArray = [0.0] * 11
 
-        # Enemy detection range
-        featureArray[11-1] = 0.0
-        if (self.on[10] != 0):
-            if is_global:
-                self.featureArray[11-1] = self.calcFeature11(world, action, sx, sy)
-            else:
-                featureArray[11-1] = self.calcFeature11(world, action, sx, sy)
+        for i, is_on in enumerate(self.on):
+            featureArray[i] = 0.0
+            if is_on:
+                featureVal = self.calcFeatureN(i+1, world, action, sx, sy, is_global)
 
-        # Closest enemy in range of 6
-        featureArray[10-1] = 0.0
-        if (self.on[9] != 0):
-            if is_global:
-                self.featureArray[10-1] = self.calcFeature10(world, action, sx, sy, False)
-            else:
-                featureArray[10-1] = self.calcFeature10(world, action, sx, sy, True)
-
-        # Corner detection
-        featureArray[9-1] = 0.0
-        if (self.on[8] != 0):
-            if is_global:
-                self.featureArray[9-1] = self.calcFeature9(world, action, sx, sy)
-            else:
-                featureArray[9-1] = self.calcFeature9(world, action, sx, sy)
-
-        # Closest enemy in range of 3
-        featureArray[8-1] = 0.0
-        if (self.on[7] != 0):
-            if is_global:
-                self.featureArray[8-1] = self.calcFeature8(world, action, sx, sy, False)
-            else:
-                featureArray[8-1] = self.calcFeature8(world, action, sx, sy, True)
-
-        # Enemy dist
-        featureArray[7-1] = 0.0
-        if (self.on[6] != 0):
-            if is_global:
-                self.featureArray[7-1] = self.calcFeature7(world, action, sx, sy, False, self.alt7)
-            else:
-                featureArray[7-1] = self.calcFeature7(world, action, sx, sy, True, self.alt7)
-
-        # A*
-        featureArray[6-1] = 0.0
-        if(self.on[5] != 0):
-            if is_global:
-                self.featureArray[6-1] = self.calcFeature6(world, action, sx, sy)
-            else:
-                featureArray[6-1] = self.calcFeature6(world, action, sx, sy)
-
-        # Bombs on the field
-        featureArray[5-1] = 0.0
-        if (self.on[4] != 0):
-            if is_global:
-                self.featureArray[5-1] = self.calcFeature5(world, action, sx, sy)
-            else:
-                featureArray[5-1] = self.calcFeature5(world, action, sx, sy)
-
-        # Dist from side walls
-        featureArray[4-1] = 0.0
-        if (self.on[3] != 0):
-            if is_global:
-                self.featureArray[4-1] = self.calcFeature4(world, action, sx, sy)
-            else:
-                featureArray[4-1] = self.calcFeature4(world, action, sx, sy)
-
-        # neighboring walls
-        featureArray[3-1] = 0.0
-        if (self.on[2] != 0):
-            if is_global:
-                self.featureArray[3-1] = self.calcFeature3(world, action, sx, sy)
-            else:
-                featureArray[3-1] = self.calcFeature3(world, action, sx, sy)
-
-        # bomb dist on lines calc
-        featureArray[2-1] = 0.0
-        if (self.on[1] != 0):
-            if is_global:
-                self.featureArray[2-1] = self.calcFeature2(world, action, sx, sy)
-            else:
-                featureArray[2-1] = self.calcFeature2(world, action, sx, sy)
-
-        # Manhattan dist calc
-        featureArray[1-1] = 0.0
-        if (self.on[0] != 0):
-            if is_global:
-                self.featureArray[1-1] = self.calcFeature1(world, action, sx, sy)
-            else:
-                featureArray[1-1] = self.calcFeature1(world, action, sx, sy)
+                if is_global:
+                    self.featureArray[i] = featureVal
+                else:
+                    featureArray[i] = featureVal
 
         # Change state under certain conditions
         if action == -1 and self.state == 1:
@@ -255,6 +177,52 @@ class TestCharacter(CharacterEntity):
     #####################
     # Feature Calculation
     #####################
+
+    # Calculate a given feature
+    def calcFeatureN(self, n, world, action, sx, sy, is_global):
+        # Enemy detection range
+        if n == 11:
+            return self.calcFeature11(world, action, sx, sy)
+
+        # Closest enemy in range of 6
+        if n == 10:
+            return self.calcFeature10(world, action, sx, sy, not is_global)
+
+        # Corner detection
+        if n == 9:
+            return self.calcFeature9(world, action, sx, sy)
+
+        # Closest enemy in range of 3
+        if n == 8:
+            return self.calcFeature8(world, action, sx, sy, not is_global)
+
+        # Enemy dist
+        if n == 7:
+            return self.calcFeature7(world, action, sx, sy, not is_global, self.alt7)
+
+        # A*
+        if n == 6:
+            return self.calcFeature6(world, action, sx, sy)
+
+        # Bombs on the field
+        if n == 5:
+            return self.calcFeature5(world, action, sx, sy)
+
+        # Dist from side walls
+        if n == 4:
+            return self.calcFeature4(world, action, sx, sy)
+
+        # neighboring walls
+        if n == 3:
+            return self.calcFeature3(world, action, sx, sy)
+
+        # bomb dist on lines calc
+        if n == 2:
+            return self.calcFeature2(world, action, sx, sy)
+
+        # Manhattan dist calc
+        if n == 1:
+            return self.calcFeature1(world, action, sx, sy)
 
     # Calculate feature 1 value for state and action
     def calcFeature1(self, wrld, action, sx, sy):
@@ -441,28 +409,10 @@ class TestCharacter(CharacterEntity):
             delta = (r + self.gamma * maxMQ) - self.calcQ(wrld, -1)
         self.printWeights()
 
-        if (self.on[0] != 0):
-            self.weightArray[1-1] = self.weightArray[1-1] + self.lr * delta * abs(self.featureArray[1-1]) * (self.weightArray[1-1]/abs(self.weightArray[1-1]))
-        if (self.on[1] != 0):
-            self.weightArray[2-1] = self.weightArray[2-1] + self.lr * delta * abs(self.featureArray[2-1]) * (self.weightArray[2-1]/abs(self.weightArray[2-1]))
-        if (self.on[2] != 0):
-            self.weightArray[3-1] = self.weightArray[3-1] + self.lr * delta * abs(self.featureArray[3-1]) * (self.weightArray[3-1]/abs(self.weightArray[3-1]))
-        if (self.on[3] != 0):
-            self.weightArray[4-1] = self.weightArray[4-1] + self.lr * delta * abs(self.featureArray[4-1]) * (self.weightArray[4-1]/abs(self.weightArray[4-1]))
-        if (self.on[4] != 0):
-            self.weightArray[5-1] = self.weightArray[5-1] + self.lr * delta * abs(self.featureArray[5-1]) * (self.weightArray[5-1]/abs(self.weightArray[5-1]))
-        if (self.on[5] != 0):
-            self.weightArray[6-1] = self.weightArray[6-1] + self.lr * delta * abs(self.featureArray[6-1]) * (self.weightArray[6-1]/abs(self.weightArray[6-1]))
-        if (self.on[6] != 0):
-            self.weightArray[7-1] = self.weightArray[7-1] + self.lr * delta * abs(self.featureArray[7-1]) * (self.weightArray[7-1]/abs(self.weightArray[7-1]))
-        if (self.on[7] != 0):
-            self.weightArray[8-1] = self.weightArray[8-1] + self.lr * delta * abs(self.featureArray[8-1]) * (self.weightArray[8-1]/abs(self.weightArray[8-1]))
-        if (self.on[8] != 0):
-            self.weightArray[9-1] = self.weightArray[9-1] + self.lr * delta * abs(self.featureArray[9-1]) * (self.weightArray[9-1]/abs(self.weightArray[9-1]))
-        if (self.on[9] != 0):
-            self.weightArray[10-1] = self.weightArray[10-1] + self.lr * delta * abs(self.featureArray[10-1]) * (self.weightArray[10-1]/abs(self.weightArray[10-1]))
-        if (self.on[10] != 0):
-            self.weightArray[11-1] = self.weightArray[11-1] + self.lr * delta * abs(self.featureArray[11-1]) * (self.weightArray[11-1]/abs(self.weightArray[11-1]))
+        # Update each weight
+        for i, isOn in enumerate(self.on):
+            if isOn:
+                self.weightArray[i] += self.lr * delta * abs(self.weightArray[i]) * self.weightArray[i] / abs(self.weightArray[i])
 
         self.printWeights()
 
