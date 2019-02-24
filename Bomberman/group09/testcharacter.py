@@ -36,6 +36,7 @@ from functools import reduce
 #TODO: Add state change for when door is visible or not
 #TODO: Add feature 12, number of walls inside range n (n = bomb range)
 
+
 class TestCharacter(CharacterEntity):
     def __init__(self, name, avatar, x, y, on, decay, lr):
         CharacterEntity.__init__(self, name, avatar, x, y)
@@ -83,8 +84,6 @@ class TestCharacter(CharacterEntity):
         else:
             if self.debug:
                 print("Random move: " + str(validMoves[move]))
-
-
 
         if hMove in validMoves:
             self.makeMove(hMove)
@@ -241,7 +240,7 @@ class TestCharacter(CharacterEntity):
                 self.changeState(self.oldState2)  # Go straight to goal
                 self.state = 2
 
-
+        # Compute the Q val from weights and features
         if (is_global):
             # if self.debug:
                 # self.printFeatures()
@@ -252,7 +251,6 @@ class TestCharacter(CharacterEntity):
                 print("Features: " + str(featureArray))
             return reduce(lambda prev, weight_feature_pair: prev + weight_feature_pair[0] * weight_feature_pair[1],
                           zip(self.weightArray, featureArray), 0)
-
 
     #####################
     # Feature Calculation
@@ -419,7 +417,6 @@ class TestCharacter(CharacterEntity):
         return feature11   
     # This comment helps allow minimizing of the above function (idk why)
 
-
     ################
     # Update weights
     ################
@@ -471,7 +468,6 @@ class TestCharacter(CharacterEntity):
 
         self.lr = self.lr*self.decay
 
-
     ##################
     # Helper Functions
     ##################
@@ -486,6 +482,7 @@ class TestCharacter(CharacterEntity):
         xDist = abs(x1-x2)
         yDist = abs(y1-y2)
         return xDist + yDist
+
     def manhattan_distance(self, node1, node2):
         dist = abs(node1[0] - node2[0]) + abs(node1[1] - node2[1])
         return dist
@@ -493,9 +490,6 @@ class TestCharacter(CharacterEntity):
     # Convert 0 to 1 num to -1 to +1 num
     def renorm(self, num):
         return num*2-1
-
-        # Find path from current location to a goal location
-        # Locations are pairs: (x, y)
 
     # Find path from current location to a goal location
     # Locations are pairs: (x, y)
