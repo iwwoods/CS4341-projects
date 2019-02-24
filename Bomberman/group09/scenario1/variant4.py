@@ -26,7 +26,7 @@ g.add_monster(monster)
 bot = TestCharacter("me", # name
                               "C",  # avatar
                               0, 0,  # position
-                              [0.0, 1.0, 0.0, 0.0, 1.0, -30.0, 0.0, 20.0, -5.0],
+                              [0.0, 1.0, 0.0, 0.0, 1.0, -30.0, 0.0, 20.0, -5.0, 0.5],
                               0.9999,   # Decay
                               0.001  # Learning rate
 )
@@ -44,7 +44,8 @@ for i in range(100):
     g.add_monster(monster)
     bot.x = 0
     bot.y = 0
-    bot.changeState([0.0, 10.0, 0.0, 0.0, 1.0, -30.0, 0.0, 20.0, -5.0])
+    bot.changeState(bot.oldState1)
+    bot.state = 1
     g.add_character(bot)
     g.go(bot)
 print("Win ratio: " + str(bot.wins) + ":" + str(bot.wins + bot.losses))

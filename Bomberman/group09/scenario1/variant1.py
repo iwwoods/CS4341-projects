@@ -18,7 +18,7 @@ g = Game.fromfile('map.txt')
 bot = TestCharacter("me", # name
                     "C",  # avatar
                     0, 0, # position
-                    [0.0, 0.0, 0.0, 0.0, 0.0, -10.0, 0.0, 0.0, 0.0],
+                    [0.0, 0.0, 0.0, 0.0, 0.0, -10.0, 0.0, 0.0, 0.0, 0.0],
                     0.9999, # Decay
                     0.01  # Learning rate
 )
@@ -30,8 +30,10 @@ g.add_character(bot)
 # My run
 for i in range(100):
     g = Game.fromfile('map.txt')
-    g.add_character(bot)
-    g.go(bot)
     bot.x = 0
     bot.y = 0
+    bot.changeState(bot.oldState1)
+    bot.state = 1
+    g.add_character(bot)
+    g.go(bot)
 print("Win ratio: " + str(bot.wins) + ":" + str(bot.wins + bot.losses))
