@@ -26,7 +26,7 @@ g.add_monster(monster)
 bot = TestCharacter("me", # name
                               "C",  # avatar
                               0, 0,  # position
-                              [0.0, 1.0, 0.0, 0.0, 1.0, -30.0, 0.0, 20.0, -5.0, 0.5],
+                              [0.0, 1.0, 0.0, 0.0, 1.0, -30.0, 0.0, 20.0, -5.0, 0.5, 0.0],
                               0.9999,   # Decay
                               0.001  # Learning rate
 )

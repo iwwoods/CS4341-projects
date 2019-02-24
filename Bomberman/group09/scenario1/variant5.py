@@ -32,7 +32,7 @@ g.add_monster(monster2)
 bot = TestCharacter("me", # name
                               "C",  # avatar
                               0, 0,  # position
-                              [0.0, 1.0, 0.0, 0.0, 1.0, -30.0, 0.0, 20.0, -5.0, 0.5],
+                              [0.0, 1.0, 0.0, 0.0, 1.0, -30.0, 0.0, 20.0, -5.0, 0.5, 40.0],
                               0.9999,   # Decay
                               0.001  # Learning rate
 )
@@ -47,8 +47,8 @@ for i in range(100):
     monster1.x = 3
     monster1.y = 5
     g.add_monster(monster1)
-    monster1.x = 3
-    monster1.y = 13
+    monster2.x = 3
+    monster2.y = 13
     g.add_monster(monster2)
     bot.x = 0
     bot.y = 0

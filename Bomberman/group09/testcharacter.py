@@ -4,6 +4,7 @@ sys.path.insert(0, '../bomberman')
 # Import necessary stuff
 from entity import CharacterEntity
 from sensed_world import SensedWorld
+from monsters.selfpreserving_monster import SelfPreservingMonster
 from colorama import Fore, Back
 import random
 import math
@@ -22,13 +23,15 @@ from queue import PriorityQueue
 '''
 
 # Potential uses for bombs: find goal, destroy walls (most walls, walls that corner you), kill enemy/other players
+#TODO: Add features to dictate bomb placement (ex. postive reward for holding on to a bomb so it only places when the placement is high enough value)
 
 #TODO: When enemy lockes on its pretty much impossible to not die, Find a way around this, maybe look at enemy's code and find what causes lock on
 #TODO: Does the bomb trigger when the enemy steps on it? or when we do? maybe add feature valuing holding onto a bomb for the right moment?
 #TODO: Add feature 10, manhattan dist to enemy in range (7?) (DONE)
+#TODO: Add feature 11, insideEnemy detection range? (DONE?)
 #TODO: Ensure code all works when door isnt visible
 #TODO: Add state change for when door is visible or not
-#TODO: Add feature 11, number of walls inside range n (n = bomb range)
+#TODO: Add feature 12, number of walls inside range n (n = bomb range)
 #TODO: Convert self.weights and self.features into arrays
 
 class TestCharacter(CharacterEntity):
@@ -45,6 +48,7 @@ class TestCharacter(CharacterEntity):
         self.weight8 = on[7]   # Weight 8 (enemy in range 3 dist)
         self.weight9 = on[8]   # Weight 9 (corner detection)
         self.weight10 = on[9]  # Weight 10 (Enemy in range 6 man dist)
+        self.weight11 = on[10] # Weight 11 (Enemy in detection range)
         self.feature1 = 0.0     # Manhattan distance to door
         self.feature2 = 0.0     # Manhattan distance to bomb in col/row
         self.feature3 = 0.0     # number of neighboring walls
@@ -55,6 +59,7 @@ class TestCharacter(CharacterEntity):
         self.feature8 = 0.0     # Closest enemy in range of 3
         self.feature9 = 0.0     # Corner detection
         self.feature10 = 0.0    # Enemy in range 6 manhattan distance
+        self.feature11 = 0.0    # Enemy in detection range
         self.gamma = 0.9        # Reward Decay
         self.lr = lr            # Learning Rate
         self.decay = decay      # Decay
@@ -63,7 +68,7 @@ class TestCharacter(CharacterEntity):
         self.alt7 = False       # True if enemies are moving only in straight lines
         self.debug = True       # Turn off to reduce prints
         self.oldState1 = on     # Used to save a state to revert back to later
-        self.oldState2 = [0.0, 0.0, 0.0, 0.0, 0.0, -5.0, 0.0, 0.0, 0.0, 0.0]     # Used to save a state to revert back to later (go directly towards goal state)
+        self.oldState2 = [0.0, 0.0, 0.0, 0.0, 0.0, -5.0, 0.0, 0.0, 0.0, 0.0, 0.0]     # Used to save a state to revert back to later (go directly towards goal state)
         self.state = 1          # State the bot is currently in
 
     # Execute action for this turn
@@ -133,6 +138,15 @@ class TestCharacter(CharacterEntity):
             if myself is None:
                 return self.calcReward(new_state[1], 0)
             world = new_state[0]
+
+
+        # Enemy detection range
+        feature11 = 0.0
+        if (self.on[10] != 0):
+            if is_global:
+                self.feature11 = self.calcFeature11(world, action, sx, sy)
+            else:
+                feature11 = self.calcFeature11(world, action, sx, sy)
 
         # Closest enemy in range of 6
         feature10 = 0.0
@@ -248,13 +262,13 @@ class TestCharacter(CharacterEntity):
         if (is_global):
             # if self.debug:
                 # self.printFeatures()
-            return self.weight1 * self.feature1 + self.weight2 * self.feature2 + self.weight3 * self.feature3 + self.weight4 * self.feature4 + self.weight5 * self.feature5 + self.weight6 * self.feature6 + self.weight7 * self.feature7 + self.weight8 * self.feature8 + self.weight9 * self.feature9 + self.weight10 * self.feature10
+            return self.weight1 * self.feature1 + self.weight2 * self.feature2 + self.weight3 * self.feature3 + self.weight4 * self.feature4 + self.weight5 * self.feature5 + self.weight6 * self.feature6 + self.weight7 * self.feature7 + self.weight8 * self.feature8 + self.weight9 * self.feature9 + self.weight10 * self.feature10 + self.weight11 * self.feature11
         else:
             if self.debug:
                 print("Features: [" + str(feature1) + ", " + str(feature2) + ", " + str(feature3) + ", " +
                   str(feature4) + ", " + str(feature5) + ", " + str(feature6) + ", " + str(feature7) + ", " +
-                  str(feature8) + ", " + str(feature9) + "]")
-            return self.weight1 * feature1 + self.weight2 * feature2 + self.weight3 * feature3 + self.weight4 * feature4 + self.weight5 * feature5 + self.weight6 * feature6 + self.weight7 * feature7 + self.weight8 * feature8 + self.weight9 * feature9 + self.weight10 * feature10
+                  str(feature8) + ", " + str(feature9) + ", " + str(feature10) + ", " + str(feature11) + "]")
+            return self.weight1 * feature1 + self.weight2 * feature2 + self.weight3 * feature3 + self.weight4 * feature4 + self.weight5 * feature5 + self.weight6 * feature6 + self.weight7 * feature7 + self.weight8 * feature8 + self.weight9 * feature9 + self.weight10 * feature10 + self.weight11 * feature11
 
 
     #####################
@@ -411,6 +425,18 @@ class TestCharacter(CharacterEntity):
         
         return self.renorm(closestEnemy/(range*2))
 
+    # Calculate feature 11 value for state and action
+    def calcFeature11(selfself, wrld, action, sx, sy):
+        feature11 = 1
+        for e in wrld.monsters:
+            monster = wrld.monsters[e][0]
+            if isinstance(monster, SelfPreservingMonster):
+                if monster.look_for_character(wrld)[0]:
+                    feature11 -= 1  # Can result in even more negative value (is this a bad thing?)
+        return feature11   
+    # This comment helps allow minimizing of the above function (idk why)
+
+
     ################
     # Update weights
     ################
@@ -455,6 +481,8 @@ class TestCharacter(CharacterEntity):
             self.weight9 = self.weight9 + self.lr * delta * abs(self.feature9) * (self.weight9/abs(self.weight9))
         if (self.on[9] != 0):
             self.weight10 = self.weight10 + self.lr * delta * abs(self.feature10) * (self.weight10/abs(self.weight10))
+        if (self.on[10] != 0):
+            self.weight11 = self.weight11 + self.lr * delta * abs(self.feature11) * (self.weight11/abs(self.weight11))
 
         self.printWeights()
 
@@ -478,6 +506,7 @@ class TestCharacter(CharacterEntity):
         self.weight8 = on[7]   # Weight 8 (enemy in range 5 dist)
         self.weight9 = on[8]   # Weight 9 (corner detection)
         self.weight10 = on[9]  # Weight 10 (Enemy in range 6 man dist)
+        self.weight11 = on[10] # Weight 11 (Enemy in detection range)
 
     # Calculates Manhattan Distance
     def calcMDist(self, x1, y1, x2, y2):
@@ -740,13 +769,13 @@ class TestCharacter(CharacterEntity):
     def printWeights(self):
         print("Weights: [" + str(self.weight1) + ", " + str(self.weight2) + ", " + str(self.weight3) + ", " +
             str(self.weight4) + ", " + str(self.weight5) + ", " + str(self.weight6) + ", " + str(self.weight7) + ", " +
-            str(self.weight8) + ", " + str(self.weight9) + ", " + str(self.weight10) + "]")
+            str(self.weight8) + ", " + str(self.weight9) + ", " + str(self.weight10) + ", " + str(self.weight11) + "]")
         
     # Prints out the features
     def printFeatures(self):
         print("Features: [" + str(self.feature1) + ", " + str(self.feature2) + ", " + str(self.feature3) + ", " +
             str(self.feature4) + ", " + str(self.feature5) + ", " + str(self.feature6) + ", " + str(self.feature7) + ", " +
-            str(self.feature8) + ", " + str(self.feature9) + ", " + str(self.feature10) + "]")
+            str(self.feature8) + ", " + str(self.feature9) + ", " + str(self.feature10) + ", " + str(self.feature11) + "]")
 
     # Calculates the reward given events
     def calcReward(self, events, extra, is_global=False):
@@ -774,4 +803,6 @@ class TestCharacter(CharacterEntity):
     # Saves current weight values to state determined by number
     def saveOldState(self, num):
         if num == 1:
-            self.oldState1 = [self.weight1, self.weight2, self.weight3, self.weight4, self.weight5, self.weight6, self.weight7, self.weight8, self.weight9, self.weight10]
+            self.oldState1 = [self.weight1, self.weight2, self.weight3, self.weight4, self.weight5, self.weight6, self.weight7, self.weight8, self.weight9, self.weight10, self.weight11]
+        elif num == 2:
+            self.oldState2 = [self.weight1, self.weight2, self.weight3, self.weight4, self.weight5, self.weight6, self.weight7, self.weight8, self.weight9, self.weight10, self.weight11]

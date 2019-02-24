@@ -18,7 +18,7 @@ g = Game.fromfile('map.txt')
 bot = TestCharacter("me", # name
                     "C",  # avatar
                     0, 0, # position
-                    [0.0, 0.0, 0.0, 0.0, 0.0, -10.0, 0.0, 0.0, 0.0, 0.0],
+                    [0.0, 0.0, 0.0, 0.0, 0.0, -10.0, 0.0, 0.0, 0.0, 0.0, 0.0],
                     0.9999, # Decay
                     0.01  # Learning rate
 )
