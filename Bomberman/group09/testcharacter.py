@@ -230,7 +230,9 @@ class TestCharacter(CharacterEntity):
                 if enemyDist is None:
                     enemyDist = len(self.aStar(world, world.exitcell, world.monsters[e][0].x, world.monsters[e][0].y))
                 else:
-                    enemyDist = min(enemyDist, len(self.aStar(world, world.exitcell, world.monsters[e][0].x, world.monsters[e][0].y)))
+                    dist = len(self.aStar(world, world.exitcell, world.monsters[e][0].x, world.monsters[e][0].y))
+                    if dist != 0:
+                        enemyDist = min(enemyDist, dist)
 
             if enemyDist is not None and enemyDist != 0:
                 largestDim = max(world.height(), world.width())
