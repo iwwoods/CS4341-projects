@@ -67,7 +67,7 @@ class TestCharacter(CharacterEntity):
         self.decay = decay      # Decay
         self.wins = 0           # Number of wins so far
         self.losses = 0         # Number of losses so far
-        self.alt7 = False       # True if enemies are moving only in straight lines
+        self.alt7 = False       # True if enemies are moving only in straight lines TODO: Remove this (should now be unessecary)
         self.debug = True       # Turn off to reduce prints
         self.oldState1 = on     # Used to save a state to revert back to later
         self.oldState2 = [0.0, 0.0, 0.0, 0.0, 0.0, -5.0, 0.0, 0.0, 0.0, 0.0, 0.0]     # Used to save a state to revert back to later (go directly towards goal state)
@@ -110,7 +110,7 @@ class TestCharacter(CharacterEntity):
             self.makeMove(hMove)
         elif qMove in validMoves:
             self.makeMove(qMove)
-        elif move < len(validMoves) :
+        elif move < len(validMoves):
             self.makeMove(validMoves[move])
         else:
             print("Invalid Move")
@@ -523,8 +523,6 @@ class TestCharacter(CharacterEntity):
     def renorm(self, num):
         return num*2-1
 
-        # Find path from current location to a goal location
-        # Locations are pairs: (x, y)
 
     # Find path from current location to a goal location
     # Locations are pairs: (x, y)
