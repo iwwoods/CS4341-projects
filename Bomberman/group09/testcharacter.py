@@ -14,9 +14,9 @@ from functools import reduce
 
 '''
  To add feature:
+   Update NUM_FEATURES
    Add to calcFeatureN function
    - Add function to calculate feature
-   Add feature spot to ALL on arrays
 '''
 
 # Potential uses for bombs: find goal, destroy walls (most walls, walls that corner you), kill enemy/other players
@@ -34,11 +34,15 @@ from functools import reduce
 
 
 class TestCharacter(CharacterEntity):
+    NUM_FEATURES = 11
+
     def __init__(self, name, avatar, x, y, on, decay, lr):
         CharacterEntity.__init__(self, name, avatar, x, y)
+        if len(on) != self.NUM_FEATURES:
+            on = on[:self.NUM_FEATURES]
         self.on = on       # Weights turned on (if 0 in 6th spot 6th feature turned off
         self.weightArray = on  # Array of weights
-        self.featureArray = [0] * len(on) # Array of features
+        self.featureArray = [0] * self.NUM_FEATURES # Array of features
         self.gamma = 0.9        # Reward Decay
         self.lr = lr            # Learning Rate
         self.decay = decay      # Decay
@@ -116,7 +120,7 @@ class TestCharacter(CharacterEntity):
                 return self.calcReward(new_state[1], 0)
             world = new_state[0]
 
-        featureArray = [0.0] * len(self.featureArray)
+        featureArray = [0.0] * self.NUM_FEATURES
 
         for i, is_on in enumerate(self.on):
             featureArray[i] = 0.0

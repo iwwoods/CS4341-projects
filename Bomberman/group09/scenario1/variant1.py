@@ -15,11 +15,13 @@ from testcharacter import TestCharacter
 g = Game.fromfile('map.txt')
 
 # TODO Add your character
-bot = TestCharacter("me", # name
+active_features = [0.0] * TestCharacter.NUM_FEATURES
+active_features[5] = -10
+bot = TestCharacter("me",  # name
                     "C",  # avatar
-                    0, 0, # position
-                    [0.0, 0.0, 0.0, 0.0, 0.0, -10.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-                    0.9999, # Decay
+                    0, 0,  # position
+                    active_features,
+                    0.9999,  # Decay
                     0.01  # Learning rate
 )
 g.add_character(bot)
