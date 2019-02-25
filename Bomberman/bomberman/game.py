@@ -115,7 +115,6 @@ class Game:
             if self.world.scores["me"] == 0:
                 extra = -100000
             bot.updateWeights(self.world, extra)
-            #input("Press Enter to continue...")
             step()
         colorama.deinit()
 

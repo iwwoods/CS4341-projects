@@ -56,5 +56,5 @@ for i in range(100):
     bot.changeState(bot.oldState1)
     bot.state = 1
     g.add_character(bot)
-    g.go(bot)
+    g.go(bot, TestCharacter.WAIT_TIME)
 print("Win ratio: " + str(bot.wins) + ":" + str(bot.wins + bot.losses))

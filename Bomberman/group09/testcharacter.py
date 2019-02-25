@@ -35,6 +35,7 @@ from functools import reduce
 
 class TestCharacter(CharacterEntity):
     NUM_FEATURES = 11
+    WAIT_TIME = 50
 
     def __init__(self, name, avatar, x, y, active_features, decay, lr):
         CharacterEntity.__init__(self, name, avatar, x, y)
