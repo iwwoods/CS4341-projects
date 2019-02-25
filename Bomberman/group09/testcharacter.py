@@ -14,12 +14,8 @@ from functools import reduce
 
 '''
  To add feature:
-   Add weight and feature variables to init,
-   Add calcFeatureN function
-   Add feature calculation and add feature * weight to the result of calcQ
-   Add feature to update weights function
-   Add feature to the print weights and print features helper functions
-   Add feature to changeState and saveOldState helpers
+   Add to calcFeatureN function
+   - Add function to calculate feature
    Add feature spot to ALL on arrays
 '''
 
