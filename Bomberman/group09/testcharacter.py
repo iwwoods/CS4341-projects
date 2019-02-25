@@ -35,6 +35,8 @@ from functools import reduce
 #TODO: Add features to dictate bomb placement (ex. postive reward for holding on to a bomb so it only places when the placement is high enough value)
 
 #TODO: Performs an action after end?
+#TODO: Fix feature 11
+#TODO: Address potential action after death in calcQ
 
 #TODO: When enemy lockes on its pretty much impossible to not die, Find a way around this, maybe look at enemy's code and find what causes lock on
 #TODO: Does the bomb trigger when the enemy steps on it? or when we do? maybe add feature valuing holding onto a bomb for the right moment?
@@ -60,7 +62,6 @@ class TestCharacter(CharacterEntity):
         self.decay = decay      # Decay
         self.wins = 0           # Number of wins so far
         self.losses = 0         # Number of losses so far
-        self.alt7 = False       # True if enemies are moving only in straight lines TODO: Remove this (should now be unessecary)
         self.debug = True       # Turn off to reduce prints
         self.oldState1 = on     # Used to save a state to revert back to later
         self.oldState2 = [0.0, 0.0, 0.0, 0.0, 0.0, -5.0, 0.0, 0.0, 0.0, 0.0, 0.0]     # Used to save a state to revert back to later (go directly towards goal state)
@@ -137,7 +138,7 @@ class TestCharacter(CharacterEntity):
         for i, is_on in enumerate(self.on):
             featureArray[i] = 0.0
             if is_on:
-                featureVal = self.calcFeatureN(i+1, world, action, sx, sy, is_global)
+                featureVal = self.calcFeatureN(i+1, world, action, sx, sy, is_global, wrld)
 
                 if is_global:
                     self.featureArray[i] = featureVal
@@ -191,14 +192,14 @@ class TestCharacter(CharacterEntity):
     #####################
 
     # Calculate a given feature
-    def calcFeatureN(self, n, world, action, sx, sy, is_global):
+    def calcFeatureN(self, n, world, action, sx, sy, is_global, oldworld):
         # Enemy detection range
         if n == 11:
             return self.calcFeature11(world, action, sx, sy)
 
         # Closest enemy in range of 6
         if n == 10:
-            return self.calcFeature10(world, action, sx, sy, not is_global)
+            return self.calcFeature10(world, action, sx, sy, not is_global, oldworld)
 
         # Corner detection
         if n == 9:
@@ -206,11 +207,11 @@ class TestCharacter(CharacterEntity):
 
         # Closest enemy in range of 3
         if n == 8:
-            return self.calcFeature8(world, action, sx, sy, not is_global)
+            return self.calcFeature8(world, action, sx, sy, not is_global, oldworld)
 
         # Enemy dist
         if n == 7:
-            return self.calcFeature7(world, action, sx, sy, not is_global, self.alt7)
+            return self.calcFeature7(world, action, sx, sy, not is_global, oldworld)
 
         # A*
         if n == 6:
@@ -310,46 +311,36 @@ class TestCharacter(CharacterEntity):
         return self.renorm(math.sqrt(lasta)/math.sqrt(largestDim*4))
 
     # Calculate feature 7 value for state and action
-    def calcFeature7(self, wrld, action, sx, sy, enemy_moves, dir=False):
+    def calcFeature7(self, wrld, action, sx, sy, enemy_moves, oldworld):
         largestDim = max(wrld.height(), wrld.width())
         closestEnemy = largestDim*2
-        for e in wrld.monsters:
-            if dir == False:
-                closestEnemy = min(closestEnemy, len(self.aStar(wrld, (wrld.monsters[e][0].x, wrld.monsters[e][0].y), sx, sy)))
-            else:
-                nx = wrld.monsters[e][0].x + wrld.monsters[e][0].dx
-                ny = wrld.monsters[e][0].y + wrld.monsters[e][0].dy
-                if nx >= 0 and nx < wrld.width() and ny >= 0 and ny < wrld.height() and not wrld.wall_at(nx, ny):
-                    asta = self.aStar(wrld, (nx, ny), sx, sy)
-                    if asta != -1:
-                        closestEnemy = min(closestEnemy, len(asta))
-                else:
-                    asta = self.aStar(wrld, (wrld.monsters[e][0].x, wrld.monsters[e][0].y), sx, sy)
-                    if asta != -1:
-                        closestEnemy = min(closestEnemy, len(asta))
-
-        # Account for worst case if enemy moves
-        if enemy_moves and closestEnemy > 0 and dir == False:
-            closestEnemy -= 1
+        found_enemy = False
+        for e in oldworld.monsters:
+            asta = self.aStar(wrld,+ (oldworld.monsters[e][0].x, oldworld.monsters[e][0].y), sx, sy)
+            if asta != -1:
+                eDist = len(asta)
+                # Account for worst case if enemy moves
+                if enemy_moves and eDist > 0:
+                    eDist -= 1
+                closestEnemy = min(closestEnemy, eDist)
 
         return self.renorm(math.sqrt(closestEnemy)/math.sqrt(largestDim*2))
 
-    #TODO: Determine if enemy move should still be accounted for with simulation?
     # Calculate feature 8 value for state and action
-    def calcFeature8(self, wrld, action, sx, sy, enemy_moves):
-        largestDim = max(wrld.height(), wrld.width())
+    def calcFeature8(self, world, action, sx, sy, enemy_moves, oldworld):
+        largestDim = max(world.height(), world.width())
         considerationRange = 3
         closestEnemy = considerationRange
-        if enemy_moves:
-            closestEnemy += 1
-        for e in wrld.monsters:
-            asta = self.aStar(wrld, (wrld.monsters[e][0].x, wrld.monsters[e][0].y), sx, sy)
+        for e in oldworld.monsters:
+            asta = self.aStar(world, (oldworld.monsters[e][0].x, oldworld.monsters[e][0].y), sx, sy)
             if asta != -1:
-                closestEnemy = min(closestEnemy, len(asta))
+                eDist = len(asta)
+                # Account for worst case if enemy moves
+                if enemy_moves and eDist > 0:
+                    eDist -= 1
+                closestEnemy = min(closestEnemy, eDist)
 
-        # Account for worst case if enemy moves
-        if enemy_moves and closestEnemy > 0:
-            closestEnemy -= 1
+
 
         return (closestEnemy)/considerationRange
 
@@ -365,27 +356,25 @@ class TestCharacter(CharacterEntity):
             if (not self.valid_move(wrld, sx, sy+dy)) or (not self.valid_move(wrld, sx, sy+dy)):
                 miny = min(miny, dy)
         return math.sqrt(minx*miny)/minCorner
-    
-    #TODO: Determine if enemy move should still be accounted for with simulation?
+
     # Calculate feature 10 value for state and action
-    def calcFeature10(self, wrld, action, sx, sy, enemy_moves):
+    def calcFeature10(self, wrld, action, sx, sy, enemy_moves, oldworld):
         range = 6  # Adjustable range to look within 
         closestEnemy = range*2
-        if enemy_moves:
-            closestEnemy +=1
-        
         for e in wrld.monsters:
-            xdiff = abs(wrld.monsters[e][0].x - sx)
-            ydiff = abs(wrld.monsters[e][0].y - sy)
+            xdiff = abs(oldworld.monsters[e][0].x - sx)
+            ydiff = abs(oldworld.monsters[e][0].y - sy)
             if xdiff+ydiff < closestEnemy:
+                if enemy_moves:
+                    if xdiff > 0:
+                        xdiff -= 1
+                    if ydiff > 0:
+                        ydiff -= 1
                 closestEnemy = xdiff+ydiff
-        
-        # Account for worst case if enemy moves
-        if enemy_moves and closestEnemy > 0:
-            closestEnemy -= 1
         
         return self.renorm(closestEnemy/(range*2))
 
+    #TODO: Fix.. (Always is 1? at least on S1V3)
     # Calculate feature 11 value for state and action
     def calcFeature11(selfself, wrld, action, sx, sy):
         feature11 = 1

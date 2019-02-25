@@ -25,6 +25,8 @@ g.add_monster(monster)
 active_features = [0.0] * TestCharacter.NUM_FEATURES
 active_features[5] = -3580.1215088319373
 active_features[7] = 1177.6500689014392
+active_features[9] = 100.0
+active_features[10] = 1000.0
 bot = TestCharacter("me", # name
                     "C",  # avatar
                     0, 0,  # position
