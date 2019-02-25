@@ -413,7 +413,7 @@ class TestCharacter(CharacterEntity):
         for i, isOn in enumerate(self.on):
             if isOn:
                 self.weightArray[i] += self.lr * delta * \
-                                       abs(self.weightArray[i]) * self.weightArray[i] / abs(self.weightArray[i])
+                                       abs(self.featureArray[i]) * (self.weightArray[i] / abs(self.weightArray[i]))
 
         self.printWeights()
 
