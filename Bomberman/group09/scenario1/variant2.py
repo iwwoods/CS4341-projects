@@ -22,9 +22,10 @@ monster = StupidMonster("monster", # name
 )
 g.add_monster(monster)
 
-active_features = [0.0] * TestCharacter.NUM_FEATURES
-active_features[5] = -3036.43566109191
-active_features[6] = 874.8232805447983
+active_features = [
+    (5, -3036.43566109191),
+    (6, 874.8232805447983),
+]
 bot = TestCharacter("me", # name
                     "C",  # avatar
                     0, 0,  # position

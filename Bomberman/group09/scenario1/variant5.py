@@ -29,14 +29,15 @@ monster2 = SelfPreservingMonster("monster", # name
 g.add_monster(monster2)
 
 # TODO Add your character
-active_features = [0.0] * TestCharacter.NUM_FEATURES
-active_features[2] = 1.0
-active_features[4] = 1.0
-active_features[5] = -30.0
-active_features[7] = 20.0
-active_features[8] = -5.0
-active_features[9] = 0.5
-active_features[10] = 40.0
+active_features = [
+    (2, 1.0),
+    (4, 1.0),
+    (5, -30.0),
+    (7, 20.0),
+    (8, -5.0),
+    (9, 0.5),
+    (10, 40.0),
+]
 bot = TestCharacter("me", # name
                     "C",  # avatar
                     0, 0,  # position

@@ -15,8 +15,7 @@ from testcharacter import TestCharacter
 g = Game.fromfile('map.txt')
 
 # TODO Add your character
-active_features = [0.0] * TestCharacter.NUM_FEATURES
-active_features[5] = -10
+active_features = [(5, -10)]
 bot = TestCharacter("me",  # name
                     "C",  # avatar
                     0, 0,  # position

@@ -36,13 +36,15 @@ from functools import reduce
 class TestCharacter(CharacterEntity):
     NUM_FEATURES = 11
 
-    def __init__(self, name, avatar, x, y, on, decay, lr):
+    def __init__(self, name, avatar, x, y, active_features, decay, lr):
         CharacterEntity.__init__(self, name, avatar, x, y)
-        if len(on) != self.NUM_FEATURES:
-            on = on[:self.NUM_FEATURES]
-        self.on = on       # Weights turned on (if 0 in 6th spot 6th feature turned off
-        self.weightArray = on  # Array of weights
-        self.featureArray = [0] * self.NUM_FEATURES # Array of features
+        # Weights turned on (if 0 in 6th spot 6th feature turned off)
+        self.on = [0.0] * self.NUM_FEATURES
+        for feat_num, weight in active_features:
+            self.on[feat_num] = weight
+
+        self.weightArray = self.on # Array of weights
+        self.featureArray = [0.0] * self.NUM_FEATURES # Array of features
         self.gamma = 0.9        # Reward Decay
         self.lr = lr            # Learning Rate
         self.decay = decay      # Decay
@@ -50,7 +52,7 @@ class TestCharacter(CharacterEntity):
         self.losses = 0         # Number of losses so far
         self.alt7 = False       # True if enemies are moving only in straight lines
         self.debug = True       # Turn off to reduce prints
-        self.oldState1 = on     # Used to save a state to revert back to later
+        self.oldState1 = self.on     # Used to save a state to revert back to later
         self.oldState2 = [0.0, 0.0, 0.0, 0.0, 0.0, -5.0, 0.0, 0.0, 0.0, 0.0, 0.0]     # Used to save a state to revert back to later (go directly towards goal state)
         self.state = 1          # State the bot is currently in
 
