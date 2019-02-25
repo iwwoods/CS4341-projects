@@ -42,7 +42,7 @@ class TestCharacter(CharacterEntity):
         CharacterEntity.__init__(self, name, avatar, x, y)
         self.on = on       # Weights turned on (if 0 in 6th spot 6th feature turned off
         self.weightArray = on  # Array of weights
-        self.featureArray = [0] * 11 # Array of features
+        self.featureArray = [0] * len(on) # Array of features
         self.gamma = 0.9        # Reward Decay
         self.lr = lr            # Learning Rate
         self.decay = decay      # Decay
@@ -120,7 +120,7 @@ class TestCharacter(CharacterEntity):
                 return self.calcReward(new_state[1], 0)
             world = new_state[0]
 
-        featureArray = [0.0] * 11
+        featureArray = [0.0] * len(self.featureArray)
 
         for i, is_on in enumerate(self.on):
             featureArray[i] = 0.0
@@ -412,7 +412,8 @@ class TestCharacter(CharacterEntity):
         # Update each weight
         for i, isOn in enumerate(self.on):
             if isOn:
-                self.weightArray[i] += self.lr * delta * abs(self.weightArray[i]) * self.weightArray[i] / abs(self.weightArray[i])
+                self.weightArray[i] += self.lr * delta * \
+                                       abs(self.weightArray[i]) * self.weightArray[i] / abs(self.weightArray[i])
 
         self.printWeights()
 
