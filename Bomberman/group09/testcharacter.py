@@ -19,6 +19,18 @@ from functools import reduce
    - Add function to calculate feature
 '''
 
+# feature1 Manhattan distance to door
+# feature2 Manhattan distance to bomb in col/row
+# feature3 number of neighboring walls
+# feature4 distance from closest side wall
+# feature5 number bombs on the field
+# feature6 A*
+# feature7 Closest enemy
+# feature8 Closest enemy in range of 3
+# feature9 Corner detection
+# feature10 Enemy in range 6 manhattan distance
+# feature11 Enemy in detection
+
 # Potential uses for bombs: find goal, destroy walls (most walls, walls that corner you), kill enemy/other players
 #TODO: Add features to dictate bomb placement (ex. postive reward for holding on to a bomb so it only places when the placement is high enough value)
 
