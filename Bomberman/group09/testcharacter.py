@@ -561,97 +561,52 @@ class TestCharacter(CharacterEntity):
     # Execute move dictated by action
     def makeMove(self, action, char=None):
         if char is None:
-            if (action == 1):
-                self.move(0, 1)
-            elif (action == 2):
-                self.move(1, 1)
-            elif (action == 3):
-                self.move(1, 0)
-            elif (action == 4):
-                self.move(1, -1)
-            elif (action == 5):
-                self.move(0, -1)
-            elif (action == 6):
-                self.move(-1, -1)
-            elif (action == 7):
-                self.move(-1, 0)
-            elif (action == 8):
-                self.move(-1, 1)
-            elif (action == 10):
-                self.place_bomb()
-                self.move(0,0)
-            elif (action == 11):
-                self.place_bomb()
-                self.move(0, 1)
-            elif (action == 12):
-                self.place_bomb()
-                self.move(1, 1)
-            elif (action == 13):
-                self.place_bomb()
-                self.move(1, 0)
-            elif (action == 14):
-                self.place_bomb()
-                self.move(1, -1)
-            elif (action == 15):
-                self.place_bomb()
-                self.move(0, -1)
-            elif (action == 16):
-                self.place_bomb()
-                self.move(-1, -1)
-            elif (action == 17):
-                self.place_bomb()
-                self.move(-1, 0)
-            elif (action == 18):
-                self.place_bomb()
-                self.move(-1, 1)
-            else:
-                self.move(0,0)
+            char = self
+        if (action == 1):
+            char.move(0, 1)
+        elif (action == 2):
+            char.move(1, 1)
+        elif (action == 3):
+            char.move(1, 0)
+        elif (action == 4):
+            char.move(1, -1)
+        elif (action == 5):
+            char.move(0, -1)
+        elif (action == 6):
+            char.move(-1, -1)
+        elif (action == 7):
+            char.move(-1, 0)
+        elif (action == 8):
+            char.move(-1, 1)
+        elif (action == 10):
+            char.place_bomb()
+            char.move(0,0)
+        elif (action == 11):
+            char.place_bomb()
+            char.move(0, 1)
+        elif (action == 12):
+            char.place_bomb()
+            char.move(1, 1)
+        elif (action == 13):
+            char.place_bomb()
+            char.move(1, 0)
+        elif (action == 14):
+            char.place_bomb()
+            char.move(1, -1)
+        elif (action == 15):
+            char.place_bomb()
+            char.move(0, -1)
+        elif (action == 16):
+            char.place_bomb()
+            char.move(-1, -1)
+        elif (action == 17):
+            char.place_bomb()
+            char.move(-1, 0)
+        elif (action == 18):
+            char.place_bomb()
+            char.move(-1, 1)
         else:
-            if (action == 1):
-                char.move(0, 1)
-            elif (action == 2):
-                char.move(1, 1)
-            elif (action == 3):
-                char.move(1, 0)
-            elif (action == 4):
-                char.move(1, -1)
-            elif (action == 5):
-                char.move(0, -1)
-            elif (action == 6):
-                char.move(-1, -1)
-            elif (action == 7):
-                char.move(-1, 0)
-            elif (action == 8):
-                char.move(-1, 1)
-            elif (action == 10):
-                char.place_bomb()
-                char.move(0,0)
-            elif (action == 11):
-                char.place_bomb()
-                char.move(0, 1)
-            elif (action == 12):
-                char.place_bomb()
-                char.move(1, 1)
-            elif (action == 13):
-                char.place_bomb()
-                char.move(1, 0)
-            elif (action == 14):
-                char.place_bomb()
-                char.move(1, -1)
-            elif (action == 15):
-                char.place_bomb()
-                char.move(0, -1)
-            elif (action == 16):
-                char.place_bomb()
-                char.move(-1, -1)
-            elif (action == 17):
-                char.place_bomb()
-                char.move(-1, 0)
-            elif (action == 18):
-                char.place_bomb()
-                char.move(-1, 1)
-            else:
-                char.move(0,0)
+            char.move(0,0)
 
     # Calculate valid moves
     def calcVMoves(self, wrld):
