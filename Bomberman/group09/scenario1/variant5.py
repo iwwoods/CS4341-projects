@@ -44,7 +44,7 @@ bot = TestCharacter("me", # name
                     0, 0,  # position
                     active_features,
                     0.9999,   # Decay
-                    0.001  # Learning rate
+                    0.00  # Learning rate
 )
 g.add_character(bot)
 
