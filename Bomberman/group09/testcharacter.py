@@ -562,90 +562,27 @@ class TestCharacter(CharacterEntity):
     def makeMove(self, action, char=None):
         if char is None:
             char = self
-        if (action == 1):
-            char.move(0, 1)
-        elif (action == 2):
-            char.move(1, 1)
-        elif (action == 3):
-            char.move(1, 0)
-        elif (action == 4):
-            char.move(1, -1)
-        elif (action == 5):
-            char.move(0, -1)
-        elif (action == 6):
-            char.move(-1, -1)
-        elif (action == 7):
-            char.move(-1, 0)
-        elif (action == 8):
-            char.move(-1, 1)
-        elif (action == 10):
+        # Action is in the form (dx, dy, should_place_bomb)
+        char.move(action[0], action[1])
+        if action[2]:
             char.place_bomb()
-            char.move(0,0)
-        elif (action == 11):
-            char.place_bomb()
-            char.move(0, 1)
-        elif (action == 12):
-            char.place_bomb()
-            char.move(1, 1)
-        elif (action == 13):
-            char.place_bomb()
-            char.move(1, 0)
-        elif (action == 14):
-            char.place_bomb()
-            char.move(1, -1)
-        elif (action == 15):
-            char.place_bomb()
-            char.move(0, -1)
-        elif (action == 16):
-            char.place_bomb()
-            char.move(-1, -1)
-        elif (action == 17):
-            char.place_bomb()
-            char.move(-1, 0)
-        elif (action == 18):
-            char.place_bomb()
-            char.move(-1, 1)
-        else:
-            char.move(0,0)
 
     # Calculate valid moves
+    # Moves take the form (dx, dy, should_place_bomb)
     def calcVMoves(self, wrld):
         validMoves = []
-        validMoves.append(0)  # No move is valid
-        if (self.valid_move(wrld, self.x, self.y + 1)):
-            validMoves.append(1)  # Move down is valid
-        if (self.valid_move(wrld, self.x + 1, self.y + 1)):
-            validMoves.append(2)  # Move down & right is valid
-        if (self.valid_move(wrld, self.x + 1, self.y)):
-            validMoves.append(3)  # Move right is valid
-        if (self.valid_move(wrld, self.x + 1, self.y - 1)):
-            validMoves.append(4)  # Move up & right is valid
-        if (self.valid_move(wrld, self.x, self.y - 1)):
-            validMoves.append(5)  # Move up is valid
-        if (self.valid_move(wrld, self.x - 1, self.y - 1)):
-            validMoves.append(6)  # Move up & left is valid
-        if (self.valid_move(wrld, self.x - 1, self.y)):
-            validMoves.append(7)  # Move left is valid
-        if (self.valid_move(wrld, self.x - 1, self.y + 1)):
-            validMoves.append(8)  # Move down & left is valid
-        if (wrld.bomb_time == 10):
-            validMoves.append(10)  # Place bomb and no move is valid
-            if (self.valid_move(wrld, self.x, self.y + 1)):
-                validMoves.append(11)  # Move down is valid
-            if (self.valid_move(wrld, self.x + 1, self.y + 1)):
-                validMoves.append(12)  # Move down & right is valid
-            if (self.valid_move(wrld, self.x + 1, self.y)):
-                validMoves.append(13)  # Move right is valid
-            if (self.valid_move(wrld, self.x + 1, self.y - 1)):
-                validMoves.append(14)  # Move up & right is valid
-            if (self.valid_move(wrld, self.x, self.y - 1)):
-                validMoves.append(15)  # Move up is valid
-            if (self.valid_move(wrld, self.x - 1, self.y - 1)):
-                validMoves.append(16)  # Move up & left is valid
-            if (self.valid_move(wrld, self.x - 1, self.y)):
-                validMoves.append(17)  # Move left is valid
-            if (self.valid_move(wrld, self.x - 1, self.y + 1)):
-                validMoves.append(18)  # Move down & left is valid   
+
+        # Loop through delta x
+        for dx in [-1, 0, 1]:
+            # Loop through delta y
+            for dy in [-1, 0, 1]:
+                if self.valid_move(wrld, self.x + dx, self.y + dy):
+                    validMoves.append((dx, dy, False))
+                    # If a bomb can be placed
+                    if wrld.bomb_time == 10:
+                        # Then can also bomb and move
+                        validMoves.append((dx, dy, True))
+
         return validMoves
 
     # Prints out the weights
