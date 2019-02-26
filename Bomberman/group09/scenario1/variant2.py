@@ -9,7 +9,7 @@ from game import Game
 from monsters.stupid_monster import StupidMonster
 
 # TODO This is your code!
-sys.path.insert(1, '../groupNN')
+sys.path.insert(1, '../group09')
 from testcharacter import TestCharacter
 
 # Create the game
@@ -22,9 +22,10 @@ monster = StupidMonster("monster", # name
 )
 g.add_monster(monster)
 
-active_features = [0.0] * TestCharacter.NUM_FEATURES
-active_features[5] = -3036.43566109191
-active_features[6] = 874.8232805447983
+active_features = [
+    (5, -3036.43566109191),
+    (6, 874.8232805447983),
+]
 bot = TestCharacter("me", # name
                     "C",  # avatar
                     0, 0,  # position
@@ -52,5 +53,5 @@ for i in range(100):
     bot.changeState(bot.oldState1)
     bot.state = 1
     g.add_character(bot)
-    g.go(bot)
+    g.go(bot, TestCharacter.WAIT_TIME)
 print("Win ratio: " + str(bot.wins) + ":" + str(bot.wins + bot.losses))

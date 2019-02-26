@@ -7,7 +7,7 @@ sys.path.insert(1, '..')
 from game import Game
 
 # TODO This is your code!
-sys.path.insert(1, '../groupNN')
+sys.path.insert(1, '../group09')
 from testcharacter import TestCharacter
 
 
@@ -15,8 +15,7 @@ from testcharacter import TestCharacter
 g = Game.fromfile('map.txt')
 
 # TODO Add your character
-active_features = [0.0] * TestCharacter.NUM_FEATURES
-active_features[5] = -10
+active_features = [(5, -10)]
 bot = TestCharacter("me",  # name
                     "C",  # avatar
                     0, 0,  # position
@@ -38,5 +37,5 @@ for i in range(100):
     bot.changeState(bot.oldState1)
     bot.state = 1
     g.add_character(bot)
-    g.go(bot)
+    g.go(bot, TestCharacter.WAIT_TIME)
 print("Win ratio: " + str(bot.wins) + ":" + str(bot.wins + bot.losses))

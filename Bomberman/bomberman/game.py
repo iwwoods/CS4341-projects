@@ -70,7 +70,6 @@ class Game:
         self.explosion_sprite = pygame.transform.scale(self.explosion_sprite, rect)
 
     def display_gui(self):
-        pygame.event.clear()
         for x in range(self.world.width()):
             for y in range(self.world.height()):
                 top = self.block_height * y
@@ -91,13 +90,24 @@ class Game:
                     self.screen.blit(self.bomb_sprite, rect)
         pygame.display.flip()
 
-    def go(self, bot):
+    def go(self, bot, wait=0):
+        """ Main game loop. """
+
+        if wait is 0:
+            def step():
+                pygame.event.clear()
+                input("Press Enter to continue or CTRL-C to stop...")
+        else:
+            def step():
+                pygame.time.wait(abs(wait))
+
         colorama.init(autoreset=True)
         self.display_gui()
         self.draw()
+        step()
         while not self.done():
             self.display_gui()
-            self.step()
+            (self.world, self.events) = self.world.next()
             self.display_gui()
             self.draw()
             # Added for learning
@@ -105,11 +115,8 @@ class Game:
             if self.world.scores["me"] == 0:
                 extra = -100000
             bot.updateWeights(self.world, extra)
-            #input("Press Enter to continue...")
+            step()
         colorama.deinit()
-
-    def step(self):
-        (self.world, self.events) = self.world.next()
 
     ###################
     # Private methods #
@@ -119,6 +126,10 @@ class Game:
         self.world.printit()
 
     def done(self):
+        # User Exit
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                return True
         # Time's up
         if self.world.time <= 0:
             return True

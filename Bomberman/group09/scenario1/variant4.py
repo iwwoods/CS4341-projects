@@ -9,7 +9,7 @@ from game import Game
 from monsters.selfpreserving_monster import SelfPreservingMonster
 
 # TODO This is your code!
-sys.path.insert(1, '../groupNN')
+sys.path.insert(1, '../group09')
 from testcharacter import TestCharacter
 
 # Create the game
@@ -23,13 +23,14 @@ monster = SelfPreservingMonster("monster", # name
 )
 g.add_monster(monster)
 
-active_features = [0.0] * TestCharacter.NUM_FEATURES
-active_features[2] = 1.0
-active_features[4] = 1.0
-active_features[5] = -30.0
-active_features[7] = 20.0
-active_features[8] = -5.0
-active_features[9] = 0.5
+active_features = [
+    (2, 1.0),
+    (4, 1.0),
+    (5, -30.0),
+    (7, 20.0),
+    (8, -5.0),
+    (9, 0.5),
+]
 bot = TestCharacter("me", # name
                     "C",  # avatar
                     0, 0,  # position
@@ -55,5 +56,5 @@ for i in range(100):
     bot.changeState(bot.oldState1)
     bot.state = 1
     g.add_character(bot)
-    g.go(bot)
+    g.go(bot, TestCharacter.WAIT_TIME)
 print("Win ratio: " + str(bot.wins) + ":" + str(bot.wins + bot.losses))
