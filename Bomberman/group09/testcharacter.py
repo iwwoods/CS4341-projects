@@ -602,7 +602,7 @@ class TestCharacter(CharacterEntity):
             elif events[e].tpe == 1:
                 r += 1000  # BOMB_HIT_MONSTER
             elif events[e].tpe == 2:
-                r -= 10000  # BOMB_HIT_CHARACTER
+                r -= 11000  # BOMB_HIT_CHARACTER
                 if is_global:
                     self.gameOver(False)  # Loss
             elif events[e].tpe == 3:
