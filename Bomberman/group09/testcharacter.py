@@ -41,8 +41,7 @@ from functools import reduce
 
 #TODO: When enemy lockes on its pretty much impossible to not die, Find a way around this, maybe look at enemy's code and find what causes lock on
 #TODO: Does the bomb trigger when the enemy steps on it? or when we do? maybe add feature valuing holding onto a bomb for the right moment?
-#TODO: Add feature 10, manhattan dist to enemy in range (7?) (DONE)
-#TODO: Add feature 11, insideEnemy detection range? (DONE?)
+#TODO: Optimize main function (some features are repetitive... consolidate? (ex find closest enemy first then pass in))
 #TODO: Ensure code all works when door isnt visible
 #TODO: Add state change for when door is visible or not
 #TODO: Add feature 12, number of walls inside range n (n = bomb range)
