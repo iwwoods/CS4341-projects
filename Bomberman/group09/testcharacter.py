@@ -272,10 +272,10 @@ class TestCharacter(CharacterEntity):
         for k in wrld.bombs:
             if wrld.bombs[k].x == sx:
                 if abs(wrld.bombs[k].y - sy) <= range:
-                    feature2 = wrld.bombs[k].timer
+                    feature2 = min(feature2, wrld.bombs[k].timer)
             if wrld.bombs[k].y == sy:
                 if abs(wrld.bombs[k].x - sx) <= range:
-                    feature2 = wrld.bombs[k].timer
+                    feature2 = min(feature2, wrld.bombs[k].timer)
         feature2 = self.renorm(feature2/(wrld.bomb_time-ticksToIgnore))
         return feature2
 

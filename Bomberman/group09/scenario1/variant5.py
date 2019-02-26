@@ -30,7 +30,7 @@ g.add_monster(monster2)
 
 # TODO Add your character
 active_features = [0.0] * TestCharacter.NUM_FEATURES
-active_features[2] = 1.0
+active_features[1] = 1.0
 active_features[4] = 1.0
 active_features[5] = -30.0
 active_features[7] = 20.0
