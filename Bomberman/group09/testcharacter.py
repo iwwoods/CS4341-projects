@@ -712,15 +712,15 @@ class TestCharacter(CharacterEntity):
             elif events[e].tpe == 2:
                 r -= 10000  # BOMB_HIT_CHARACTER
                 if is_global:
-                    self.losses += 1
+                    self.gameOver(False)  # Loss
             elif events[e].tpe == 3:
                 r -= 10000  # CHARACTER_KILLED_BY_MONSTER
                 if is_global:
-                    self.losses += 1
+                    self.gameOver(False)  # Loss
             elif events[e].tpe == 4:
                 r += 10000  # CHARACTER_FOUND_EXIT
                 if is_global:
-                    self.wins += 1
+                    self.gameOver(True)  # Win
             print(events[e])
         return r
 
@@ -730,3 +730,15 @@ class TestCharacter(CharacterEntity):
             self.oldstate1 = self.weightArray
         elif num == 2:
             self.oldState2 = self.weightArray
+
+    # Handle game end
+    def gameOver(self, win):
+        if win:
+            self.wins += 1
+        else:
+            self.losses += 1
+
+        # Save state for next run
+        self.saveOldState(self.state)
+
+
