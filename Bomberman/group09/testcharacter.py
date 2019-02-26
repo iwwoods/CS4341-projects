@@ -319,7 +319,7 @@ class TestCharacter(CharacterEntity):
         closestEnemy = largestDim*2
         found_enemy = False
         for e in oldworld.monsters:
-            asta = self.aStar(wrld,+ (oldworld.monsters[e][0].x, oldworld.monsters[e][0].y), sx, sy)
+            asta = self.aStar(wrld, (oldworld.monsters[e][0].x, oldworld.monsters[e][0].y), sx, sy)
             if asta != -1:
                 eDist = len(asta)
                 # Account for worst case if enemy moves
