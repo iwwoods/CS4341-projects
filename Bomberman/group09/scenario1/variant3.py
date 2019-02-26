@@ -24,8 +24,8 @@ g.add_monster(monster)
 
 
 active_features = [
-    (5, -3580.1215088319373),
-    (7, 1177.6500689014392)
+    (6, -3580.1215088319373),
+    (8, 1177.6500689014392)
 ]
 bot = TestCharacter("me", # name
                     "C",  # avatar

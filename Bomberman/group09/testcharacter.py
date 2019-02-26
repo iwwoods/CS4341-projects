@@ -19,6 +19,7 @@ from functools import reduce
    - Add function to calculate feature
 '''
 
+# feature0 Dummy feature to represent bias
 # feature1 Manhattan distance to door
 # feature2 Manhattan distance to bomb in col/row
 # feature3 number of neighboring walls
@@ -48,7 +49,7 @@ from functools import reduce
 
 
 class TestCharacter(CharacterEntity):
-    NUM_FEATURES = 11
+    NUM_FEATURES = 12
     WAIT_TIME = 50
 
     def __init__(self, name, avatar, x, y, active_features, decay, lr):
@@ -67,7 +68,7 @@ class TestCharacter(CharacterEntity):
         self.losses = 0         # Number of losses so far
         self.debug = True       # Turn off to reduce prints
         self.oldState1 = self.on     # Used to save a state to revert back to later
-        self.oldState2 = [0.0, 0.0, 0.0, 0.0, 0.0, -5.0, 0.0, 0.0, 0.0, 0.0, 0.0]     # Used to save a state to revert back to later (go directly towards goal state)
+        self.oldState2 = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -5.0, 0.0, 0.0, 0.0, 0.0, 0.0]     # Used to save a state to revert back to later (go directly towards goal state)
         self.state = 1          # State the bot is currently in
 
     # Execute action for this turn
@@ -141,7 +142,7 @@ class TestCharacter(CharacterEntity):
         for i, is_on in enumerate(self.on):
             featureArray[i] = 0.0
             if is_on:
-                featureVal = self.calcFeatureN(i+1, world, action, sx, sy, is_global, wrld)
+                featureVal = self.calcFeatureN(i, world, action, sx, sy, is_global, wrld)
 
                 if is_global:
                     self.featureArray[i] = featureVal
@@ -155,7 +156,7 @@ class TestCharacter(CharacterEntity):
 
             # Fill goalDist
             if (self.on[5] != 0):
-                goalDist = self.featureArray[6-1]
+                goalDist = self.featureArray[6]
             else:
                 goalDist = self.calcFeature6(world, action, sx, sy)
 
@@ -240,6 +241,10 @@ class TestCharacter(CharacterEntity):
         # Manhattan dist calc
         if n == 1:
             return self.calcFeature1(world, action, sx, sy)
+
+        # Dummy feature
+        if n == 0:
+            return 1
 
     # Calculate feature 1 value for state and action
     def calcFeature1(self, wrld, action, sx, sy):
