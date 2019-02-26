@@ -169,11 +169,12 @@ class TestCharacter(CharacterEntity):
                     if dist != 0:
                         enemyDist = min(enemyDist, dist)
 
-            if enemyDist is not None and enemyDist > 0:
-                largestDim = max(world.height(), world.width())
-                enemyDist = enemyDist-1  # Monster moves first
-                enemyDist = math.sqrt(enemyDist) / math.sqrt(largestDim * 4)
-            enemyDist = self.renorm(enemyDist)
+            if enemyDist is not None:
+                if enemyDist > 0:
+                    largestDim = max(world.height(), world.width())
+                    enemyDist = enemyDist-1  # Monster moves first
+                    enemyDist = math.sqrt(enemyDist) / math.sqrt(largestDim * 4)
+                enemyDist = self.renorm(enemyDist)
 
             if enemyDist is None or goalDist < enemyDist:
                 self.saveOldState(self.state)
