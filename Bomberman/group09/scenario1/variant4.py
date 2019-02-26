@@ -24,7 +24,7 @@ monster = SelfPreservingMonster("monster", # name
 g.add_monster(monster)
 
 active_features = [
-    (2, 1.0),
+    (1, 1.0),
     (4, 1.0),
     (5, -30.0),
     (7, 20.0),
