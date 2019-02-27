@@ -176,10 +176,35 @@ class TestCharacter(CharacterEntity):
             if enemyDist is not None:
                 if enemyDist > 0:
                     largestDim = max(world.height(), world.width())
-                    enemyDist = enemyDist-1  # Monster moves first
+                    # enemyDist = enemyDist -1 # Monster moves first (sim = monster move, our move, pause)
                     enemyDist = math.sqrt(enemyDist) / math.sqrt(largestDim * 4)
                 enemyDist = self.renorm(enemyDist)
 
+            # If a monster is blocked off from the exit character may run towards the exit when the monster may only be
+            # temporarily blocked (maybe add a temporary check?) ex.
+            '''
+            +--------+
+            |   A*  C|
+            |    * @ |
+            |********|
+            | W W*   |
+            |    *   |
+            |    *   |
+            |    * S |
+            |    WWWW|
+            |        |
+            |        |
+            |        |
+            |WWWW    |
+            |        |
+            |        |
+            |        |
+            |    WWWW|
+            |        |
+            |        |
+            |       #|
+            +--------+
+            '''
             if enemyDist is None or goalDist < enemyDist:
                 self.saveOldState(self.state)
                 self.changeState(self.oldState2)  # Go straight to goal
@@ -205,11 +230,11 @@ class TestCharacter(CharacterEntity):
     def calcFeatureN(self, n, world, action, sx, sy, is_global, oldworld):
         # Enemy detection range
         if n == 11:
-            return self.calcFeature11(world, action, sx, sy, not is_global, oldworld)
+            return self.calcFeature11(world, action, sx, sy)
 
         # Closest enemy in range of 6
         if n == 10:
-            return self.calcFeature10(world, action, sx, sy, not is_global, oldworld)
+            return self.calcFeature10(world, action, sx, sy)
 
         # Corner detection
         if n == 9:
@@ -217,11 +242,11 @@ class TestCharacter(CharacterEntity):
 
         # Closest enemy in range of 3
         if n == 8:
-            return self.calcFeature8(world, action, sx, sy, not is_global, oldworld)
+            return self.calcFeature8(world, action, sx, sy)
 
         # Enemy dist
         if n == 7:
-            return self.calcFeature7(world, action, sx, sy, not is_global, oldworld)
+            return self.calcFeature7(world, action, sx, sy)
 
         # A*
         if n == 6:
@@ -281,7 +306,7 @@ class TestCharacter(CharacterEntity):
 
         # find if bomb is in range
         range = wrld.expl_range
-        ticksToIgnore = 5  # ignores bomb positioning for first four seconds to allow free movement
+        ticksToIgnore = 7  # ignores bomb positioning for first four seconds to allow free movement
         feature2 = wrld.bomb_time-ticksToIgnore
         for k in wrld.bombs:
             if wrld.bombs[k].x == sx:
@@ -327,34 +352,28 @@ class TestCharacter(CharacterEntity):
         return self.renorm(math.sqrt(lasta)/math.sqrt(largestDim*4))
 
     # Calculate feature 7 value for state and action
-    def calcFeature7(self, wrld, action, sx, sy, enemy_moves, oldworld):
+    def calcFeature7(self, wrld, action, sx, sy):
         largestDim = max(wrld.height(), wrld.width())
         closestEnemy = largestDim*2
         found_enemy = False
-        for e in oldworld.monsters:
-            asta = self.aStar(wrld, (oldworld.monsters[e][0].x, oldworld.monsters[e][0].y), sx, sy)
+        for e in wrld.monsters:
+            asta = self.aStar(wrld, (wrld.monsters[e][0].x, wrld.monsters[e][0].y), sx, sy)
             if asta != -1:
                 eDist = len(asta)
-                # Account for worst case if enemy moves
-                if enemy_moves and eDist > 0:
-                    eDist -= 1
                 closestEnemy = min(closestEnemy, eDist)
 
         return self.renorm(math.sqrt(closestEnemy)/math.sqrt(largestDim*2))
 
     # Calculate feature 8 value for state and action
-    def calcFeature8(self, world, action, sx, sy, enemy_moves, oldworld):
+    def calcFeature8(self, world, action, sx, sy):
         largestDim = max(world.height(), world.width())
         considerationRange = 3
         closestEnemy = considerationRange
-        for e in oldworld.monsters:
-            monster = oldworld.monsters[e][0]
+        for e in world.monsters:
+            monster = world.monsters[e][0]
             asta = self.aStar(world, (monster.x, monster.y), sx, sy)
             if asta != -1:
                 eDist = len(asta)
-                # Account for worst case if enemy moves
-                if enemy_moves and eDist > 0:
-                    eDist -= 1
                 # Modify based on manhattan distance
                 eDist += .1 * (abs(sx - monster.x) + abs(sy - monster.y))
                 closestEnemy = min(closestEnemy, eDist)
@@ -377,38 +396,36 @@ class TestCharacter(CharacterEntity):
         return math.sqrt(minx*miny)/minCorner
 
     # Calculate feature 10 value for state and action
-    def calcFeature10(self, wrld, action, sx, sy, enemy_moves, oldworld):
+    def calcFeature10(self, wrld, action, sx, sy):
         range = 6  # Adjustable range to look within 
         closestEnemy = range*2
-        for e in oldworld.monsters:
-            xdiff = abs(oldworld.monsters[e][0].x - sx)
-            ydiff = abs(oldworld.monsters[e][0].y - sy)
+        for e in wrld.monsters:
+            xdiff = abs(wrld.monsters[e][0].x - sx)
+            ydiff = abs(wrld.monsters[e][0].y - sy)
             if xdiff+ydiff < closestEnemy:
-                if enemy_moves:
-                    if xdiff > 0:
-                        xdiff -= 1
-                    if ydiff > 0:
-                        ydiff -= 1
                 closestEnemy = xdiff+ydiff
         
         return self.renorm(closestEnemy/(range*2))
 
-    #TODO: Fix.. (Always is 1? at least on S1V3)
     # Calculate feature 11 value for state and action
-    def calcFeature11(self, wrld, action, sx, sy, enemy_moves, oldWorld):
+    def calcFeature11(self, wrld, action, sx, sy):
         feature11 = 1
-        mrange = self.monster_aggro_range
-        if enemy_moves:
-            mrange += 1
+        mrange = 0
         for e in wrld.monsters:
             for monster in wrld.monsters[e]:
-                if monster.avatar == 'A':
+                mrange = 0
+                if monster.name == 'aggressive':
+                    mrange = 2
+                elif monster.name == 'selfpreserving':
+                    mrange = 1
+
+                if mrange > 0:
                     # Check if in range of aggro, based on what we think the range is
                     if abs(sx - monster.x) <= mrange and abs(sy - monster.y) <= mrange:
                         feature11 = -1.0 + .04 * (abs(sx-monster.x) + abs(sy-monster.y))
 
         return feature11
-    # This comment helps allow minimizing of the above function (idk why)
+
 
     ################
     # Update weights
@@ -645,6 +662,7 @@ class TestCharacter(CharacterEntity):
         else:
             self.losses += 1
 
+        print("Win Percentage across " + str(self.wins+self.losses) + " games: " + str((self.wins/(self.wins+self.losses))*100) + "%")
         # Save state for next run
         self.saveOldState(self.state)
 
