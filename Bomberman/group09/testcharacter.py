@@ -45,6 +45,7 @@ from functools import reduce
 #TODO: Ensure code all works when door isnt visible
 #TODO: Add state change for when door is visible or not
 #TODO: Add feature 12, number of walls inside range n (n = bomb range)
+# TODO: Rename character and merge into master
 
 
 class TestCharacter(CharacterEntity):
