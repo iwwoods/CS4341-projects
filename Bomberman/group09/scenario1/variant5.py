@@ -53,7 +53,7 @@ g.add_character(bot)
 #g.go()
 
 # My run
-for i in range(100):
+for i in range(50):
     g = Game.fromfile('map.txt')
     monster1.x = 3
     monster1.y = 5

@@ -205,7 +205,8 @@ class TestCharacter(CharacterEntity):
             |       #|
             +--------+
             '''
-            if enemyDist is None or goalDist < enemyDist:
+            # If there is a path for the character
+            if goalDist != 1 and (enemyDist is None or goalDist < enemyDist):
                 self.saveOldState(self.state)
                 self.changeState(self.oldState2)  # Go straight to goal
                 self.state = 2
