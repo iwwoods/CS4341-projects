@@ -31,13 +31,14 @@ g.add_monster(monster2)
 # TODO Add your character
 
 active_features = [
-    (2, 1.0),
+    (2, 10.0),
     (5, 1.0),
     (6, -30.0),
+    (7, 5.0),
     (8, 20.0),
-    (9, -5.0),
+    (9, 5.0),
     (10, 0.5),
-    (11, 40.0),
+    (11, 100.0),
 ]
 bot = TestCharacter("me", # name
                     "C",  # avatar
