@@ -163,10 +163,13 @@ class TestCharacter(CharacterEntity):
 
             # Fill enemyDist (enemy to door)
             for e in world.monsters:
+                astar = self.aStar(world, world.exitcell, world.monsters[e][0].x, world.monsters[e][0].y)
+                if astar == -1:
+                    continue
                 if enemyDist is None:
-                    enemyDist = len(self.aStar(world, world.exitcell, world.monsters[e][0].x, world.monsters[e][0].y))
+                    enemyDist = len(astar)
                 else:
-                    dist = len(self.aStar(world, world.exitcell, world.monsters[e][0].x, world.monsters[e][0].y))
+                    dist = len(astar)
                     if dist != 0:
                         enemyDist = min(enemyDist, dist)
 
@@ -318,6 +321,8 @@ class TestCharacter(CharacterEntity):
     def calcFeature6(self, wrld, action, sx, sy):
         largestDim = max(wrld.height(), wrld.width())
         asta = self.aStar(wrld, wrld.exitcell, sx, sy)
+        if asta == -1:
+            return 1
         lasta = len(asta)
         return self.renorm(math.sqrt(lasta)/math.sqrt(largestDim*4))
 
@@ -375,7 +380,7 @@ class TestCharacter(CharacterEntity):
     def calcFeature10(self, wrld, action, sx, sy, enemy_moves, oldworld):
         range = 6  # Adjustable range to look within 
         closestEnemy = range*2
-        for e in wrld.monsters:
+        for e in oldworld.monsters:
             xdiff = abs(oldworld.monsters[e][0].x - sx)
             ydiff = abs(oldworld.monsters[e][0].y - sy)
             if xdiff+ydiff < closestEnemy:

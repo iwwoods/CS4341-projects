@@ -16,10 +16,10 @@ from testcharacter import TestCharacter
 random.seed(123) # TODO Change this if you want different random choices
 g = Game.fromfile('map.txt')
 
-monster = SelfPreservingMonster("monster", # name
-                                    "M",       # avatar
-                                    3, 13,     # position
-                                    2          # detection range
+monster = SelfPreservingMonster("aggressive", # name
+                                    "A",          # avatar
+                                    3, 13,        # position
+                                    2             # detection range
 )
 g.add_monster(monster)
 
