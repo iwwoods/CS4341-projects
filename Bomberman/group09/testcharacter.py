@@ -70,6 +70,8 @@ class TestCharacter(CharacterEntity):
         self.oldState2 = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -5.0, 0.0, 0.0, 0.0, 0.0, 0.0]     # Used to save a state to revert back to later (go directly towards goal state)
         self.state = 1          # State the bot is currently in
 
+        self.monster_aggro_range = 2
+
     # Execute action for this turn
     def do(self, wrld):
         # Your code here
@@ -154,7 +156,7 @@ class TestCharacter(CharacterEntity):
             goalDist = 0
 
             # Fill goalDist
-            if (self.on[5] != 0):
+            if (self.on[6] != 0):
                 goalDist = self.featureArray[6]
             else:
                 goalDist = self.calcFeature6(world, action, sx, sy)
@@ -200,7 +202,7 @@ class TestCharacter(CharacterEntity):
     def calcFeatureN(self, n, world, action, sx, sy, is_global, oldworld):
         # Enemy detection range
         if n == 11:
-            return self.calcFeature11(world, action, sx, sy)
+            return self.calcFeature11(world, action, sx, sy, not is_global, oldworld)
 
         # Closest enemy in range of 6
         if n == 10:
@@ -276,7 +278,7 @@ class TestCharacter(CharacterEntity):
 
         # find if bomb is in range
         range = wrld.expl_range
-        ticksToIgnore = 4  # ignores bomb positioning for first four seconds to allow free movement
+        ticksToIgnore = 5  # ignores bomb positioning for first four seconds to allow free movement
         feature2 = wrld.bomb_time-ticksToIgnore
         for k in wrld.bombs:
             if wrld.bombs[k].x == sx:
@@ -306,9 +308,9 @@ class TestCharacter(CharacterEntity):
 
     # Calculate feature 5 value for state and action
     def calcFeature5(self, wrld, action, sx, sy):
-        value = 1
+        value = 1.0
         for b in wrld.bombs:
-            value = 0
+            value = 0.0
         value = self.renorm(value)
         return -value
 
@@ -341,15 +343,16 @@ class TestCharacter(CharacterEntity):
         considerationRange = 3
         closestEnemy = considerationRange
         for e in oldworld.monsters:
-            asta = self.aStar(world, (oldworld.monsters[e][0].x, oldworld.monsters[e][0].y), sx, sy)
+            monster = oldworld.monsters[e][0]
+            asta = self.aStar(world, (monster.x, monster.y), sx, sy)
             if asta != -1:
                 eDist = len(asta)
                 # Account for worst case if enemy moves
                 if enemy_moves and eDist > 0:
                     eDist -= 1
+                # Modify based on manhattan distance
+                eDist += .1 * (abs(sx - monster.x) + abs(sy - monster.y))
                 closestEnemy = min(closestEnemy, eDist)
-
-
 
         return (closestEnemy)/considerationRange
 
@@ -359,11 +362,13 @@ class TestCharacter(CharacterEntity):
         minx = minCorner
         miny = minCorner
         for dx in range(minCorner):
-            if (not self.valid_move(wrld, sx+dx, sy)) or (not self.valid_move(wrld, sx+dx, sy)):
+            if (not self.valid_move(wrld, sx+dx, sy)) or (not self.valid_move(wrld, sx-dx, sy)):
                 minx = min(minx, dx)
         for dy in range(minCorner):
-            if (not self.valid_move(wrld, sx, sy+dy)) or (not self.valid_move(wrld, sx, sy+dy)):
+            if (not self.valid_move(wrld, sx, sy+dy)) or (not self.valid_move(wrld, sx, sy-dy)):
                 miny = min(miny, dy)
+        if miny == 1 and minx == 1:
+            return -1
         return math.sqrt(minx*miny)/minCorner
 
     # Calculate feature 10 value for state and action
@@ -385,14 +390,19 @@ class TestCharacter(CharacterEntity):
 
     #TODO: Fix.. (Always is 1? at least on S1V3)
     # Calculate feature 11 value for state and action
-    def calcFeature11(selfself, wrld, action, sx, sy):
+    def calcFeature11(self, wrld, action, sx, sy, enemy_moves, oldWorld):
         feature11 = 1
+        mrange = self.monster_aggro_range
+        if enemy_moves:
+            mrange += 1
         for e in wrld.monsters:
-            monster = wrld.monsters[e][0]
-            if isinstance(monster, SelfPreservingMonster):
-                if monster.look_for_character(wrld)[0]:
-                    feature11 -= 1  # Can result in even more negative value (is this a bad thing?)
-        return feature11   
+            for monster in wrld.monsters[e]:
+                if monster.avatar == 'A':
+                    # Check if in range of aggro, based on what we think the range is
+                    if abs(sx - monster.x) <= mrange and abs(sy - monster.y) <= mrange:
+                        feature11 = -1.0 + .04 * (abs(sx-monster.x) + abs(sy-monster.y))
+
+        return feature11
     # This comment helps allow minimizing of the above function (idk why)
 
     ################
@@ -524,7 +534,7 @@ class TestCharacter(CharacterEntity):
                         # Avoid out-of-bound indexing
                         if (node[1] + dy >= 0) and (node[1] + dy < wrld.height()):
                             # No need to check impossible moves
-                            if not wrld.wall_at(node[0] + dx, node[1] + dy):
+                            if self.valid_move(wrld, node[0] + dx, node[1] + dy):
                                 neighbors.append((node[0] + dx, node[1] + dy))
 
         return neighbors
