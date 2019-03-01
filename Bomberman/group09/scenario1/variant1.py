@@ -15,13 +15,14 @@ from testcharacter import TestCharacter
 g = Game.fromfile('map.txt')
 
 # TODO Add your character
+# 100:100 (100%)
 active_features = [(6, -10)]
 bot = TestCharacter("me",  # name
                     "C",  # avatar
                     0, 0,  # position
                     active_features,
                     0.9999,  # Decay
-                    0.01  # Learning rate
+                    0.0  # Learning rate
 )
 g.add_character(bot)
 
@@ -29,7 +30,7 @@ g.add_character(bot)
 #g.go(bot)
 
 # My run
-for i in range(100):
+for i in range(10):
     g = Game.fromfile('map.txt')
     bot.x = 0
     bot.y = 0

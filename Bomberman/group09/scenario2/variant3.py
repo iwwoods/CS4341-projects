@@ -23,14 +23,15 @@ monster = SelfPreservingMonster("selfpreserving", # name
 g.add_monster(monster)
 
 # TODO Add your character
+# 100:100 (100%)
 active_features = [
-    (1, -8.0),
+    (1, -7),
     (2, 10.0),
     (5, 1.0),
     (6, -30.0),
     (7, 5.0),
-    (8, 20.0),
-    (9, 5.0),
+    (8, 21.0),
+    (9, 7.0),
     (10, 0.5),
     (11, 100.0),
 ]
@@ -47,7 +48,7 @@ g.add_character(bot)
 #g.go(bot, wait=1)
 
 # My run
-for i in range(10):
+for i in range(100):
     g = Game.fromfile('map.txt')
     monster.x = 3
     monster.y = 9

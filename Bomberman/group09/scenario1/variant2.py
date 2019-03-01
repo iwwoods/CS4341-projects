@@ -21,9 +21,24 @@ monster = StupidMonster("stupid", # name
 )
 g.add_monster(monster)
 
+# 95:100 (95%)
+'''
 active_features = [
     (6, -3036.43566109191),
     (7, 874.8232805447983),
+]
+'''
+# 99:100 (99%)
+active_features = [
+    (1, -7),
+    (2, 10.0),
+    (5, 1.0),
+    (6, -30.0),
+    (7, 5.0),
+    (8, 21.0),
+    (9, 7.0),
+    (10, 0.5),
+    (11, 100.0),
 ]
 bot = TestCharacter("me", # name
                     "C",  # avatar

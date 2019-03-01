@@ -10,4 +10,67 @@ No need for an intro in which you describe the goal of the project.
 Code Structure:
 We used approximate Q-Learning to solve each varient in this project.
 The main function is the do function which decides which action to take.
-The 
+The do function uses the calcQ(world, action) function to determine 
+what the best next action is. 
+If calcQ gets passed an action of -1 it indicates that no action is
+to be taken and it should evaluate the features in the current state.
+If no action is being taken it evaluates state changes (Explained below)
+If calcQ gets passed a valid action, it simulates the world with the 
+given move then calculates the Q value for this. If the result is a
+terminal state, the reward from this is returned.
+
+State Changes
+When creating the bot you pass in a weight array "on" which are used 
+as the initial weights and any weights set to 0 in this are ignored 
+when in this default state. There is one other state implemented which
+is the rush towards exit state (only cares about feature 6 (A* distance
+to exit)). The bot switches to this state when it is closer to the exit
+than any enemy.
+
+CalcQ calls a general function calcFeatureN() to calculate the value
+for any given feature. This function calls the individual calcFeature
+functions to calculate the feature values. Below is a list of all 
+features we used:
+
+Features
+------------------------------------------
+feature0: Dummy feature to represent bias
+feature1: Manhattan distance to door
+feature2: Manhattan distance to bomb in col/row
+feature3: number of neighboring walls
+feature4: distance from closest side wall
+feature5: number bombs on the field
+feature6: A*
+feature7: Closest enemy
+feature8: Closest enemy in range of 3
+feature9: Corner detection
+feature10: Enemy in range 6 manhattan distance
+feature11: Enemy in detection
+
+This code was reused for each varient with just different weights
+We also added 3 things to the constructor of the character:
+active_features is used to set initial weights and determine the 
+  "on" array
+decay is used only for learning
+lr is also only used for learning
+
+Learning was to slow and sporatic to make it truely feasible in
+this project so the weights were adjusted and tested by hand. The 
+final weights for each varient resut in these results over 100 games:
+
+Results:
+Wins:Games (win percentage) 
+------------------------------
+Scenario 1:
+Varient 1: 100:100 (100%)
+Varient 2: 99:100 (99%)
+Varient 3: 93:99 (93.93939393939394%)
+Varient 4: 80:100 (80%)
+Varient 5: 85:100 (85%)
+
+Scenario 2:
+Varient 1: 100:100 (100%)
+Varient 2: 100:100 (100%)
+Varient 3: 100:100 (100%)
+Varient 4: 96:100 (96%)
+Varient 5: 88:100 (88%)

@@ -29,7 +29,7 @@ monster2 = SelfPreservingMonster("aggressive", # name
 g.add_monster(monster2)
 
 # TODO Add your character
-
+# 85:100 (85%)
 active_features = [
     (2, 10.0),
     (5, 1.0),
@@ -40,6 +40,36 @@ active_features = [
     (10, 0.5),
     (11, 100.0),
 ]
+
+# 83:100 (83%)
+'''
+active_features = [
+    (1, -7),
+    (2, 10.0),
+    (5, 1.0),
+    (6, -30.0),
+    (7, 5.0),
+    (8, 21.0),
+    (9, 7.0),
+    (10, 0.5),
+    (11, 100.0),
+]
+'''
+
+# 81:100 (81%)
+'''
+active_features = [
+    (1, -8.0),
+    (2, 10.0),
+    (5, 1.0),
+    (6, -30.0),
+    (7, 5.0),
+    (8, 20.0),
+    (9, 5.0),
+    (10, 0.5),
+    (11, 100.0),
+]
+'''
 bot = TestCharacter("me", # name
                     "C",  # avatar
                     0, 0,  # position
@@ -53,7 +83,7 @@ g.add_character(bot)
 #g.go()
 
 # My run
-for i in range(50):
+for i in range(100):
     g = Game.fromfile('map.txt')
     monster1.x = 3
     monster1.y = 5

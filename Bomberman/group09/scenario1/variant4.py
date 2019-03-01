@@ -23,20 +23,56 @@ monster = SelfPreservingMonster("aggressive", # name
 )
 g.add_monster(monster)
 
+
+
+'''
+# 70:100 (70%)
 active_features = [
-    (2, 1.0),
+    (1, -6.0),
+    (2, 10.0),
     (5, 1.0),
     (6, -30.0),
+    (7, 5.0),
     (8, 20.0),
-    (9, -5.0),
+    (9, 6.0),
     (10, 0.5),
+    (11, 200.0),
+]
+'''
+
+# 72:100 (72%)
+'''
+active_features = [
+    (2, 10.0),
+    (5, 1.0),
+    (6, -30.0),
+    (7, 5.0),
+    (8, 20.0),
+    (9, 5.0),
+    (10, 0.5),
+    (11, 100.0),
+]
+'''
+
+
+# 80:100 (80%)
+active_features = [
+    (1, -4),
+    (2, 10.0),
+    (5, 1.0),
+    (6, -30.0),
+    (7, 5.0),
+    (8, 21.0),
+    (9, 8.0),
+    (10, 0.5),
+    (11, 150.0),
 ]
 bot = TestCharacter("me", # name
                     "C",  # avatar
                     0, 0,  # position
                     active_features,
                     0.9999,   # Decay
-                    0.001  # Learning rate
+                    0.00  # Learning rate
 )
 # TODO Add your character
 g.add_character(bot)

@@ -29,6 +29,7 @@ monster2 = SelfPreservingMonster("aggressive", # name
 g.add_monster(monster2)
 
 # TODO Add your character
+# 88:100 (88%)
 active_features = [
     (1, -7),
     (2, 10.0),
