@@ -1,0 +1,13 @@
+Group 09 - Final Project
+Isaac Woods
+Ryan Racine
+Aiden O'Keefe
+
+Describe how you solved each variant
+Describe the structure of your code: did you reuse stuff across variants?
+No need for an intro in which you describe the goal of the project.
+
+Code Structure:
+We used approximate Q-Learning to solve each varient in this project.
+The main function is the do function which decides which action to take.
+The 

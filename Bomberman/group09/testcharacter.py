@@ -35,15 +35,9 @@ from functools import reduce
 # Potential uses for bombs: find goal, destroy walls (most walls, walls that corner you), kill enemy/other players
 #TODO: Add features to dictate bomb placement (ex. postive reward for holding on to a bomb so it only places when the placement is high enough value)
 
-#TODO: Performs an action after end?
-#TODO: Fix feature 11
+#TODO: Performs an action after end? (Fixed?)
 #TODO: Address potential action after death in calcQ
-
-#TODO: When enemy lockes on its pretty much impossible to not die, Find a way around this, maybe look at enemy's code and find what causes lock on
-#TODO: Does the bomb trigger when the enemy steps on it? or when we do? maybe add feature valuing holding onto a bomb for the right moment?
 #TODO: Optimize main function (some features are repetitive... consolidate? (ex find closest enemy first then pass in))
-#TODO: Ensure code all works when door isnt visible
-#TODO: Add state change for when door is visible or not
 #TODO: Add feature 12, number of walls inside range n (n = bomb range)
 
 
@@ -58,48 +52,46 @@ class TestCharacter(CharacterEntity):
         for feat_num, weight in active_features:
             self.on[feat_num] = weight
 
-        self.weightArray = self.on # Array of weights
+        self.weightArray = self.on   # Array of weights
         self.featureArray = [0.0] * self.NUM_FEATURES # Array of features
-        self.gamma = 0.9        # Reward Decay
-        self.lr = lr            # Learning Rate
-        self.decay = decay      # Decay
-        self.wins = 0           # Number of wins so far
-        self.losses = 0         # Number of losses so far
-        self.debug = True       # Turn off to reduce prints
+        self.gamma = 0.9             # Reward Decay
+        self.lr = lr                 # Learning Rate
+        self.decay = decay           # Decay
+        self.wins = 0                # Number of wins so far
+        self.losses = 0              # Number of losses so far
+        self.debug = False            # Turn off to reduce prints
         self.oldState1 = self.on     # Used to save a state to revert back to later
-        self.oldState2 = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -5.0, 0.0, 0.0, 0.0, 0.0, 0.0]     # Used to save a state to revert back to later (go directly towards goal state)
-        self.state = 1          # State the bot is currently in
+        self.oldState2 = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -5.0, 0.0, 0.0, 0.0, 0.0, 0.0]     # Used to save rush state
+        self.state = 1               # State the bot is currently in
 
         self.monster_aggro_range = 2
 
     # Execute action for this turn
     def do(self, wrld):
-        # Your code here
         validMoves = self.calcVMoves(wrld)  # Find all valid moves
         move = random.randint(0,len(validMoves)-1)  # Randomly pick move
 
-        # Interactive
-        hMove = -1
-        move = -1
-        print(validMoves)
-        #hMove = int(input("Pick a move"))
-        #print(hMove)
+        # Interactive (Disabled - uncomment to reenable)
+        hMove = -1  # Human move
+        # move = -1   # Disable random move
+        if self.debug:
+            print(validMoves)
+        # hMove = int(input("Pick a move"))  # Get human's move
+        # print(hMove)
 
         # Learning
-        qMove = -1
-        if(True):  #self.lr == 0.0 or random.randint(0, 5) != 0):  # Add some randomness
-            self.printFeatures()
-            maxQ = None
-            for m in range(len(validMoves)):
-                moveQVal = self.calcQ(wrld, validMoves[m])
-                if maxQ is None or moveQVal > maxQ:
-                    qMove = validMoves[m]
-                    maxQ = moveQVal
-                if self.debug:
-                    print(str(validMoves[m]) + ": " + str(moveQVal))
+        qMove = -1  # Q Learning move decision
+        curStateQ = self.calcQ(wrld, -1)[0]  # Evaluate current state
+        if(True):  #self.lr == 0.0 or random.randint(0, 5) != 0):  # Add some randomness (Disabled - Uncomment to reenable)
+            if(self.debug):
+                self.printFeatures()
+
+            qMove = self.bestMove(wrld)[0]
             if self.debug:
                 print("Q Move: " + str(qMove))
+
         else:
+            # Otherwise use random move
             if self.debug:
                 print("Random move: " + str(validMoves[move]))
 
@@ -120,30 +112,38 @@ class TestCharacter(CharacterEntity):
         sy = self.y
         world = wrld
 
+        # Check for gameover
+        myself = world.me(self)
+        if myself is None:  # If gameover
+            return (self.calcReward(world.events, 0), None)
+
+        # If action = -1 take no action, evaluate current board (current/global state)
         is_global = False
         if action == -1:
             is_global = True
-        else:   # Only do if action taken/ time passed
+        else:  # Only do if action taken/ time passed
+
+            # Simulate World
             sim_world = SensedWorld.from_world(wrld)  # Create copy of world to run simulation on
             myself = sim_world.me(self)               # Find my character in the simulated world (this is a copy of first char so technically different)
-            #if myself is None:  #TODO: Find way to handle gameover, myself is None
             self.makeMove(action, myself)             # Execute action
             new_state = sim_world.next()              # Simulate outcome (returns (new_world, events))
-            sim_world = new_state[0]
+            sim_world = new_state[0]                  # Update sim_world to the new world
             myself = sim_world.me(self)               # Update my character from new world
-            if myself is not None:
-                sx = myself.x
-                sy = myself.y
-            if myself is None:
-                return self.calcReward(new_state[1], 0)
+            if myself is None:                        # If game is over in new world
+                return (self.calcReward(new_state[1], 0), None)
+
+            # Update variables outside this else statement
+            sx = myself.x
+            sy = myself.y
             world = new_state[0]
 
+        # Fill in feature array (self.feature if global, temporary featureArray if not)
         featureArray = [0.0] * self.NUM_FEATURES
-
         for i, is_on in enumerate(self.on):
             featureArray[i] = 0.0
             if is_on:
-                featureVal = self.calcFeatureN(i, world, action, sx, sy, is_global, wrld)
+                featureVal = self.calcFeatureN(i, world, action, sx, sy)
 
                 if is_global:
                     self.featureArray[i] = featureVal
@@ -152,10 +152,12 @@ class TestCharacter(CharacterEntity):
 
         # Change state under certain conditions
         if action == -1 and self.state == 1:
-            enemyDist = None
-            goalDist = 0
 
-            # Fill goalDist
+            # If player is closer to goal than enemy, make a break for it
+            enemyDist = None  # Enemy A* to goal
+            goalDist = 0      # Player A* to goal
+
+            # Fill goalDist (retrieve from global if available - Should always be)
             if (self.on[6] != 0):
                 goalDist = self.featureArray[6]
             else:
@@ -164,15 +166,17 @@ class TestCharacter(CharacterEntity):
             # Fill enemyDist (enemy to door)
             for e in world.monsters:
                 astar = self.aStar(world, world.exitcell, world.monsters[e][0].x, world.monsters[e][0].y)
-                if astar == -1:
+                if astar == -1:  # If monster cant reach exit
                     continue
-                if enemyDist is None:
-                    enemyDist = len(astar)
-                else:
-                    dist = len(astar)
-                    if dist != 0:
-                        enemyDist = min(enemyDist, dist)
 
+                # Update enemyDist
+                dist = len(astar)
+                if enemyDist is None:
+                    enemyDist = dist
+                else:
+                    enemyDist = min(enemyDist, dist)
+
+            # If enemyDist isn't None, normalize it to its on the same scale as goalDist
             if enemyDist is not None:
                 if enemyDist > 0:
                     largestDim = max(world.height(), world.width())
@@ -180,55 +184,32 @@ class TestCharacter(CharacterEntity):
                     enemyDist = math.sqrt(enemyDist) / math.sqrt(largestDim * 4)
                 enemyDist = self.renorm(enemyDist)
 
-            # If a monster is blocked off from the exit character may run towards the exit when the monster may only be
-            # temporarily blocked (maybe add a temporary check?) ex.
-            '''
-            +--------+
-            |   A*  C|
-            |    * @ |
-            |********|
-            | W W*   |
-            |    *   |
-            |    *   |
-            |    * S |
-            |    WWWW|
-            |        |
-            |        |
-            |        |
-            |WWWW    |
-            |        |
-            |        |
-            |        |
-            |    WWWW|
-            |        |
-            |        |
-            |       #|
-            +--------+
-            '''
-            # If there is a path for the character
+            # Things to look into: If a monster is blocked off from the exit character may run towards the exit when
+            #   the monster may only be temporarily blocked (maybe add a temporary check?)
+            # If there is a path for the character and player is closer than enemy, switch to break state
             if goalDist != 1 and (enemyDist is None or goalDist < enemyDist):
                 self.saveOldState(self.state)
                 self.changeState(self.oldState2)  # Go straight to goal
                 self.state = 2
 
-        # Compute the Q val from weights and features
+        # Compute the Q val from weights and features arrays
         if (is_global):
             # if self.debug:
                 # self.printFeatures()
-            return reduce(lambda prev, weight_feature_pair: prev + weight_feature_pair[0] * weight_feature_pair[1],
-                          zip(self.weightArray, self.featureArray), 0)
+            return (reduce(lambda prev, weight_feature_pair: prev + weight_feature_pair[0] * weight_feature_pair[1],
+                          zip(self.weightArray, self.featureArray), 0), world)
         else:
             if self.debug:
                 print("Features: " + str(featureArray))
-            return reduce(lambda prev, weight_feature_pair: prev + weight_feature_pair[0] * weight_feature_pair[1],
-                          zip(self.weightArray, featureArray), 0)
+            return (reduce(lambda prev, weight_feature_pair: prev + weight_feature_pair[0] * weight_feature_pair[1],
+                          zip(self.weightArray, featureArray), 0), world)
 
     #####################
     # Feature Calculation
     #####################
 
     # Calculate a given feature
-    def calcFeatureN(self, n, world, action, sx, sy, is_global, oldworld):
+    def calcFeatureN(self, n, world, action, sx, sy):
         # Enemy detection range
         if n == 11:
             return self.calcFeature11(world, action, sx, sy)
@@ -281,10 +262,10 @@ class TestCharacter(CharacterEntity):
     def calcFeature1(self, wrld, action, sx, sy):
         # Manhattan dist calc
         exitVisable = wrld.exitcell != None
-        distToExit = wrld.height()  # Large value
+        distToExit = wrld.height()+wrld.width()  # Large value
         if exitVisable:
-            distToExit = self.calcMDist(sx, sy, wrld.exitcell[0], wrld.exitcell[1])
-        feature1 = distToExit/(wrld.width() + wrld.height())
+            distToExit = self.manhattan_distance((sx,sy), (wrld.exitcell[0], wrld.exitcell[1]))
+        feature1 = distToExit/(wrld.width() + wrld.height())  # Normalize (0 to 1)
         feature1 = self.renorm(feature1)
 
         return feature1
@@ -292,22 +273,9 @@ class TestCharacter(CharacterEntity):
     # Calculate feature 2 value for state and action
     def calcFeature2(self, wrld, action, sx, sy):
         # bomb dist on lines calc
-        ''' OLD DIST CODE
-        largestDim = max(wrld.height(), wrld.width())
-        feature2 = largestDim/largestDim
-        if action == 1 or self.is_bomb_at(wrld, sx, sy):
-            feature2 = 0/largestDim
-        for k in wrld.bombs:
-            if wrld.bombs[k].x == sx:
-                feature2 = min(feature2, abs(wrld.bombs[k].y - sy)+wrld.bomb_time/largestDim+9)
-            if wrld.bombs[k].y == sy:
-                feature2 = min(feature2, abs(wrld.bombs[k].x - sx)+wrld.bomb_time/largestDim+9)
-        feature2 = self.renorm(feature2)
-        '''
-
         # find if bomb is in range
-        range = wrld.expl_range
-        ticksToIgnore = 7  # ignores bomb positioning for first four seconds to allow free movement
+        range = wrld.expl_range   # Bomb range
+        ticksToIgnore = 9         # ignores bomb positioning for first four seconds to allow free movement
         feature2 = wrld.bomb_time-ticksToIgnore
         for k in wrld.bombs:
             if wrld.bombs[k].x == sx:
@@ -316,7 +284,7 @@ class TestCharacter(CharacterEntity):
             if wrld.bombs[k].y == sy:
                 if abs(wrld.bombs[k].x - sx) <= range:
                     feature2 = min(feature2, wrld.bombs[k].timer)
-        feature2 = self.renorm(feature2/(wrld.bomb_time-ticksToIgnore))
+        feature2 = self.renorm(feature2/(wrld.bomb_time-ticksToIgnore))  # Normalize (-1 to 1)
         return feature2
 
     # Calculate feature 3 value for state and action
@@ -326,8 +294,7 @@ class TestCharacter(CharacterEntity):
 
     # Calculate feature 4 value for state and action
     def calcFeature4(self, wrld, action, sx, sy):
-        #feature4 = self.renorm(min(sx, wrld.width()-sx)/(wrld.width()/2))
-        minDist = min(sx, wrld.width()-sx)/(wrld.width()/2)
+        minDist = min(sx, wrld.width()-sx)  # Normalize (0 to 1)
         feature4 = 1
         i = 0
         while i < minDist:
@@ -337,20 +304,20 @@ class TestCharacter(CharacterEntity):
 
     # Calculate feature 5 value for state and action
     def calcFeature5(self, wrld, action, sx, sy):
-        value = 1.0
+        value = 1.0  # No bombs
         for b in wrld.bombs:
-            value = 0.0
-        value = self.renorm(value)
+            value = 0.0  # Bombs
+        value = self.renorm(value)  # Normalize (-1 to 1)
         return -value
 
     # Calculate feature 6 value for state and action
     def calcFeature6(self, wrld, action, sx, sy):
         largestDim = max(wrld.height(), wrld.width())
         asta = self.aStar(wrld, wrld.exitcell, sx, sy)
-        if asta == -1:
+        if asta == -1:  # If there is no path
             return 1
         lasta = len(asta)
-        return self.renorm(math.sqrt(lasta)/math.sqrt(largestDim*4))
+        return self.renorm(math.sqrt(lasta)/math.sqrt(largestDim*4))  # Normalize (-1 to 1)
 
     # Calculate feature 7 value for state and action
     def calcFeature7(self, wrld, action, sx, sy):
@@ -359,7 +326,7 @@ class TestCharacter(CharacterEntity):
         found_enemy = False
         for e in wrld.monsters:
             asta = self.aStar(wrld, (wrld.monsters[e][0].x, wrld.monsters[e][0].y), sx, sy)
-            if asta != -1:
+            if asta != -1:  # If valid path exists
                 eDist = len(asta)
                 closestEnemy = min(closestEnemy, eDist)
 
@@ -368,14 +335,15 @@ class TestCharacter(CharacterEntity):
     # Calculate feature 8 value for state and action
     def calcFeature8(self, world, action, sx, sy):
         largestDim = max(world.height(), world.width())
-        considerationRange = 3
+        considerationRange = 4
         closestEnemy = considerationRange
         for e in world.monsters:
             monster = world.monsters[e][0]
             asta = self.aStar(world, (monster.x, monster.y), sx, sy)
             if asta != -1:
                 eDist = len(asta)
-                # Modify based on manhattan distance
+
+                # Modify value based on manhattan distance
                 eDist += .1 * (abs(sx - monster.x) + abs(sy - monster.y))
                 closestEnemy = min(closestEnemy, eDist)
 
@@ -434,6 +402,8 @@ class TestCharacter(CharacterEntity):
 
     # Updates the weights
     def updateWeights(self, wrld, extra):
+        oldDebug = self.debug
+        self.debug = False
         vMoves = self.calcVMoves(wrld)
         r = self.calcReward(wrld.events, extra, is_global=True)
         maxMQ = None
@@ -459,6 +429,7 @@ class TestCharacter(CharacterEntity):
                                        abs(self.featureArray[i]) * (self.weightArray[i] / abs(self.weightArray[i]))
 
         self.printWeights()
+        self.debug = oldDebug
 
         self.lr = self.lr*self.decay
 
@@ -655,6 +626,28 @@ class TestCharacter(CharacterEntity):
             self.oldstate1 = self.weightArray
         elif num == 2:
             self.oldState2 = self.weightArray
+
+    # Find best move
+    def bestMove(self, world):
+        validMoves = self.calcVMoves(world)
+        qMove = -1  # Q Learning move decision
+        maxQ = None  # Max Q value found for a next action (cooresponds with the action above)
+        moveQWorld = None
+
+        # Find best move
+        for m in range(len(validMoves)):
+            moveQRes = self.calcQ(world, validMoves[m])
+            moveQVal = moveQRes[0]
+
+            if maxQ is None or moveQVal > maxQ:
+                qMove = validMoves[m]
+                maxQ = moveQVal
+                moveQWorld = moveQRes[1]
+
+            if self.debug:
+                print(str(validMoves[m]) + ": " + str(moveQVal))
+
+        return (qMove, moveQWorld)
 
     # Handle game end
     def gameOver(self, win):

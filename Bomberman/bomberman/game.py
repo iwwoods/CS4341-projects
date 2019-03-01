@@ -111,10 +111,11 @@ class Game:
             self.display_gui()
             self.draw()
             # Added for learning
-            extra = 0
-            if self.world.scores["me"] == 0:
-                extra = -100000
-            bot.updateWeights(self.world, extra)
+            #extra = 0
+            #if self.world.scores["me"] == 0:
+            #    extra = -100000
+            #bot.updateWeights(self.world, extra)
+            bot.calcReward(self.events,extra=0,is_global=True)
             step()
         colorama.deinit()
 
