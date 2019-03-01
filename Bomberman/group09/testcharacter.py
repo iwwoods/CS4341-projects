@@ -39,6 +39,7 @@ from functools import reduce
 #TODO: Address potential action after death in calcQ
 #TODO: Optimize main function (some features are repetitive... consolidate? (ex find closest enemy first then pass in))
 #TODO: Add feature 12, number of walls inside range n (n = bomb range)
+# TODO: Rename character and merge into master
 
 
 class TestCharacter(CharacterEntity):
