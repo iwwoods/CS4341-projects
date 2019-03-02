@@ -14,7 +14,6 @@ sys.path.insert(1, '../group09')
 from testcharacter import TestCharacter
 
 # Create the game
-random.seed(123) # TODO Change this if you want different random choices
 g = Game.fromfile('map.txt')
 monster1 = StupidMonster("stupid", # name
                             "S",      # avatar
