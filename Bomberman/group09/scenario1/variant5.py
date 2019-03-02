@@ -80,22 +80,22 @@ bot = TestCharacter("me", # name
 g.add_character(bot)
 
 # Run!
-#g.go()
+g.go(10)
 
-# My run
-for i in range(100):
-    g = Game.fromfile('map.txt')
-    monster1.x = 3
-    monster1.y = 5
-    g.add_monster(monster1)
-    monster2.x = 3
-    monster2.y = 13
-    g.add_monster(monster2)
-    bot.x = 0
-    bot.y = 0
-    bot.maybe_place_bomb = False
-    bot.changeState(bot.oldState1)
-    bot.state = 1
-    g.add_character(bot)
-    g.go(bot, TestCharacter.WAIT_TIME)
-print("Win ratio: " + str(bot.wins) + ":" + str(bot.wins + bot.losses))
+# # My run
+# for i in range(100):
+#     g = Game.fromfile('map.txt')
+#     monster1.x = 3
+#     monster1.y = 5
+#     g.add_monster(monster1)
+#     monster2.x = 3
+#     monster2.y = 13
+#     g.add_monster(monster2)
+#     bot.x = 0
+#     bot.y = 0
+#     bot.maybe_place_bomb = False
+#     bot.changeState(bot.oldState1)
+#     bot.state = 1
+#     g.add_character(bot)
+#     g.go(bot, TestCharacter.WAIT_TIME)
+# print("Win ratio: " + str(bot.wins) + ":" + str(bot.wins + bot.losses))
