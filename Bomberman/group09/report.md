@@ -3,10 +3,6 @@ Isaac Woods
 Ryan Racine
 Aidan O'Keefe
 
-Describe how you solved each variant
-Describe the structure of your code: did you reuse stuff across variants?
-No need for an intro in which you describe the goal of the project.
-
 ## Code Structure
 Our final approach for this project was to use approximate Q-learning to solve each variant with a set of 12 features. The main function, `do`, decides which action to take by calling a function named `calcQ(world, action)`. calcQ can be passed an action or a null action (represented by the value -1). If a null action is passed, it evaluates the features in the current state, then evaluates state changes (which will be explained later).  If calcQ receives a valid action as a parameter, it simulates the world with the given move, then calculates the new world's Q value. If the result is a terminal state, the reward from this state is returned.
 
@@ -110,7 +106,7 @@ We first attempted to allow the agent to learn on its own. However, we found tha
 ## Results
 Key: Variant #: Num Wins:Num Games (win%)
 
-* Scenario 1:
+- Scenario 1:
   - Variant 1: 100:100 (100%)
   - Variant 2: 99:100 (99%)
   - Variant 3: 93:99 (93.94%)
