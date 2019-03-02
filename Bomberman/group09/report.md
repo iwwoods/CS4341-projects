@@ -1,7 +1,7 @@
 # Group 09 - Final Project
 Isaac Woods
 Ryan Racine
-Aiden O'Keefe
+Aidan O'Keefe
 
 Describe how you solved each variant
 Describe the structure of your code: did you reuse stuff across variants?
