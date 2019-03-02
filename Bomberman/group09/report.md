@@ -28,12 +28,12 @@ calcQ operates by calling a general function (`calcFeatureN()`) to calculate a g
 - `feature10`: This feature looks for enemies within a Manhattan distance of 6.
 - `feature11`: This feature detects enemies in immediate range of us.
 
-#### Feature 1:
+### Feature 1:
 Calculates the manhattan distance to the exit. Used mostly in 
 Scenario2 to encourage the bot to move towards the exit even 
 when a viable path cannot be found
 
-#### Feature 2:
+### Feature 2:
 Calculates the distance from a bomb in the sme colmn or row
 within bomb_range. We used this mostly to tell the bot not to
 stand near bombs when they are about to explode. This at one point
@@ -43,29 +43,29 @@ to ignore bombs whose timers were above a certain point (in the end
 1 tick) because bombs are only harmful if youre too close when
 they go off.
 
-#### Feature 3:
+### Feature 3:
 Counts the surrounding walls. The idea behind this was to give the
 bot some way of knowing it was in a tight spot or in a spot that would
 be good to place a bomb in. We didnt end up using this feature.
 
-#### Feature 4:
+### Feature 4:
 Find distance to the closest side wall. This was used early on to 
 tell the bot not to get to close to the side walls because these 
 limit its movement options. This was eventually mostly replaced by
 feature 9.
 
-#### Feature 5: 
+### Feature 5: 
 Calculates the number of bombs on the field. This was used to tell the
 bot if it should place bombs. The weight associated with this feature
 was eventually set to positive resulting in the bot placeing bombs off
 cooldown
 
-#### Feature 6: 
+### Feature 6: 
 Calculates the A* distance to the exit if a path exists. This was used 
 as the main feature to drive the bot toward the goal, especially in the
 first varient. 
 
-#### Feature 7: 
+### Feature 7: 
 Calculates the A* distance to the closest enemy on the board. This was
 the first feature implemented to try to keep the bot away from the 
 enemies. The bot doesnt care too much about enemies really far away
@@ -73,20 +73,20 @@ which this still detected so the weight was  kept low for most varients
 which favored the following features which limit the max range of 
 detection
 
-#### Feature 8:
+### Feature 8:
 It calculates the A* distance to the closest enemy same as feature 7
 except it only considers enemies within 4 steps of A*. This is helpful 
 because the enemy doesnt care about enemies too far away. It also
 lets the agent know of any eminent danger.
 
-#### Feature 9:
+### Feature 9:
 It calculates a value that is supposed to represent how cornered the
 bot is. it calculates this using the distance from the closest obstacle
 on the left or right and the closest obstacle on the top or bottom. This
 was a useful feature for telling the bot not to put itself in situations
 that could easy cause it to be trapped and die.
 
-#### Feature 10:
+### Feature 10:
 Calculates the manhattan distance from enemies in a 6x6 square around the
 bot. We discovered that if an enemy was moving towards the bot and a move 
 would result in the bot being further away but the same number of A* steps
@@ -94,7 +94,7 @@ the bot ust wouldnt move, so this feature helps the bot understand that
 moving further away is also helpful though this feature usually has a 
 lower weight than its A* distance counterpart
 
-#### Feature 11:
+### Feature 11:
 Calculates whether or not the bot is in the detection range of any enemies.
 This has a very high weight to ensure the bot doesnt step into detection
 range lightly as it often results in the bot dying. This was added to 
