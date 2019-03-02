@@ -88,6 +88,20 @@ on the left or right and the closest obstacle on the top or bottom. This
 was a useful feature for telling the bot not to put itself in situations
 that could easy cause it to be trapped and die.
 
+Feature 10:
+Calculates the manhattan distance from enemies in a 6x6 square around the
+bot. We discovered that if an enemy was moving towards the bot and a move 
+would result in the bot being further away but the same number of A* steps
+the bot ust wouldnt move, so this feature helps the bot understand that 
+moving further away is also helpful though this feature usually has a 
+lower weight than its A* distance counterpart
+
+Feature 11:
+Calculates whether or not the bot is in the detection range of any enemies.
+This has a very high weight to ensure the bot doesnt step into detection
+range lightly as it often results in the bot dying. This was added to 
+ensure the bot stayed out of these "No go zones"
+
 After each feature has been evaluated, they are multiplied by the weights we have provided, giving us the final Q score for a given Q(s, a). We choose the action with the highest score and take it.
 
 Solution
