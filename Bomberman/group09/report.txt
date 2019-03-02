@@ -7,45 +7,28 @@ Describe how you solved each variant
 Describe the structure of your code: did you reuse stuff across variants?
 No need for an intro in which you describe the goal of the project.
 
-Code Structure:
-We used approximate Q-Learning to solve each varient in this project.
-The main function is the do function which decides which action to take.
-The do function uses the calcQ(world, action) function to determine 
-what the best next action is. 
-If calcQ gets passed an action of -1 it indicates that no action is
-to be taken and it should evaluate the features in the current state.
-If no action is being taken it evaluates state changes (Explained below)
-If calcQ gets passed a valid action, it simulates the world with the 
-given move then calculates the Q value for this. If the result is a
-terminal state, the reward from this is returned.
+Code Structure
+------------------------------------------
+Our final approach for this project was to use approximate Q-learning to solve each variant with a set of 12 features. The main function, 'do', decides which action to take by calling a function named 'calcQ(world, action)'. calcQ can be passed an action or a null action (represented by the value -1). If a null action is passed, it evaluates the features in the current state, then evaluates state changes (which will be explained later).  If calcQ receives a valid action as a parameter, it simulates the world with the given move, then calculates the new world's Q value. If the result is a terminal state, the reward from this state is returned.
 
-State Changes
-When creating the bot you pass in a weight array "on" which are used 
-as the initial weights and any weights set to 0 in this are ignored 
-when in this default state. There is one other state implemented which
-is the rush towards exit state (only cares about feature 6 (A* distance
-to exit)). The bot switches to this state when it is closer to the exit
-than any enemy.
+When our agent is created, you can enable or disable features from the total Q-learning function to tailor the agent to the requirements of each variant. Any weights which are set to 0 when instantiating the agent represent the features that will be disabled during the default state. A 2nd state exists for the agent called the "exit rush" state, which the agent will enter when it has determined via A* that it is closer to the exit than any enemy present on the map is. In this case, all other features are disabled and the agent simply moves to the exit.
 
-CalcQ calls a general function calcFeatureN() to calculate the value
-for any given feature. This function calls the individual calcFeature
-functions to calculate the feature values. Below is a list of all 
-features we used:
+calcQ operates by calling a general function (calcFeatureN()) to calculate a given feature value. This function calls a set of individual calcFeature functions specific to each feature that will return the feature value. Below is a list of the features used and their function:
 
 Features
 ------------------------------------------
-feature0: Dummy feature to represent bias
-feature1: Manhattan distance to door
-feature2: Manhattan distance to bomb in col/row
-feature3: number of neighboring walls
-feature4: distance from closest side wall
-feature5: number bombs on the field
-feature6: A*
-feature7: Closest enemy
-feature8: Closest enemy in range of 4
-feature9: Corner detection
-feature10: Enemy in range 6 manhattan distance
-feature11: Enemy in detection
+feature0: This feature is a dummy feature which represents the bias.
+feature1: This feature is based on the Manhattan distance to the exit.
+feature2: This feature is based on the Manhattan distance to a bomb in the current column or row.
+feature3: This feature is the number of neighboring walls. 
+feature4: This feature is the distance from the closest side wall. 
+feature5: This feature is the number of bombs on the field. 
+feature6: This feature is our A* pathfinding algorithm.
+feature7: This feature is based on the closest enemy to the player at a given time.
+feature8: This feature is based on the closest enemy to the player within a range of 3 tiles. 
+feature9: This feature detects corners.
+feature10: This feature looks for enemies within a Manhattan distance of 6.
+feature11: This feature detects enemies in immediate range of us.
 
 Feature 1:
 Calculates the manhattan distance to the exit. Used mostly in 
@@ -95,7 +78,8 @@ detection
 Feature 8:
 It calculates the A* distance to the closest enemy same as feature 7
 except it only considers enemies within 4 steps of A*. This is helpful 
-because the enemy doesnt care about enemies too far away
+because the enemy doesnt care about enemies too far away. It also
+lets the agent know of any eminent danger.
 
 Feature 9:
 It calculates a value that is supposed to represent how cornered the
@@ -104,30 +88,35 @@ on the left or right and the closest obstacle on the top or bottom. This
 was a useful feature for telling the bot not to put itself in situations
 that could easy cause it to be trapped and die.
 
-This code was reused for each varient with just different weights
-We also added 3 things to the constructor of the character:
-active_features is used to set initial weights and determine the 
-  "on" array
-decay is used only for learning
-lr is also only used for learning
+After each feature has been evaluated, they are multiplied by the weights we have provided, giving us the final Q score for a given Q(s, a). We choose the action with the highest score and take it.
 
-Learning was to slow and sporatic to make it truely feasible in
-this project so the weights were adjusted and tested by hand. The 
-final weights for each varient resut in these results over 100 games:
+Solution
+------------------------------------------
+Our Q-learning agent was reused for each variant with slight changes to which features were activated per variant. For instance, Variant 1 does not require any of the enemy features to be enabled, so they are left off to save on processing time. We added 3 things to the character's constructor: "active_features", which sets the initial weights and determines which features have been enabled; decay, which is used during the training process; and lr, which is also used during the training process.
 
-Results:
-Wins:Games (win percentage) 
+We first attempted to allow the agent to learn on its own. However, we found that the learning process was too slow to feasibly finish this project in time. As a result, we used a "human-in-the-loop" training process where the agent's progress would be observed, and weights would be adjusted by one of the group members to help speed up the learning process. This process took approximately 30 minutes to an hour per variant, with about 15-20 minutes added on to tweak which features would be enabled and disabled during A/B testing. The final weights for each variant included in our submission result in these results over 100 games:
+
+Results
 ------------------------------
+Key:
+Variant #: Wins:Games (win%) 
+
 Scenario 1:
-Varient 1: 100:100 (100%)
-Varient 2: 99:100 (99%)
-Varient 3: 93:99 (93.93939393939394%)
-Varient 4: 80:100 (80%)
-Varient 5: 85:100 (85%)
+Variant 1: 100:100 (100%)
+Variant 2: 99:100 (99%)
+Variant 3: 93:99 (93.94%)
+Variant 4: 80:100 (80%)
+Variant 5: 85:100 (85%)
 
 Scenario 2:
-Varient 1: 100:100 (100%)
-Varient 2: 100:100 (100%)
-Varient 3: 100:100 (100%)
-Varient 4: 96:100 (96%)
-Varient 5: 88:100 (88%)
+Variant 1: 100:100 (100%)
+Variant 2: 100:100 (100%)
+Variant 3: 100:100 (100%)
+Variant 4: 96:100 (96%)
+Variant 5: 88:100 (88%)
+
+Conclusions
+------------------------------------------
+Our agent performed very well across both scenarios in all variants, with a slight drop-off in performance in the more complex variants (Variant 4 and 5). We have surpassed or matched the 80% threshold in each and every variant however and are satisfied with our performance. Approximate Q-learning based on toggleable features is a lightweight, easy to implement solution for a complex problem like Bomberman that has yielded fantastic results for us.
+
+One interesting experiment would be to see, after extensive training, if the approximate Q-learning we implemented would converge on the same values we ended up with after our human-in-the-loop learning process. We believe that, while our weights are very good and win a significant portion of the time, there likely exist more optimal weights that could approach a 100% win percentage over the same 100 games per each scenario. The main limiting factor, and why we did not complete this during the project, was a lack of time to train the agent. 
