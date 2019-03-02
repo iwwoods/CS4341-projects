@@ -90,7 +90,7 @@ class Game:
                     self.screen.blit(self.bomb_sprite, rect)
         pygame.display.flip()
 
-    def go(self, bot, wait=0):
+    def go(self, wait=0):
         """ Main game loop. """
 
         if wait is 0:
@@ -106,17 +106,11 @@ class Game:
         self.draw()
         step()
         while not self.done():
-            self.display_gui()
             (self.world, self.events) = self.world.next()
             self.display_gui()
             self.draw()
-            # Added for learning
-            #extra = 0
-            #if self.world.scores["me"] == 0:
-            #    extra = -100000
-            #bot.updateWeights(self.world, extra)
-            bot.calcReward(self.events,extra=0,is_global=True)
             step()
+            self.world.next_decisions()
         colorama.deinit()
 
     ###################
